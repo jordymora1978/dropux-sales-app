@@ -152,59 +152,54 @@ def system_status():
 
 @app.get("/db-test")
 def test_database():
-    """Test Supabase connection and list tables"""
+    """Test Supabase connection and diagnose table access issues"""
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not connected")
     
     try:
-        # Test if we have tables and get their structure
-        tables_info = {}
+        # Debug the Supabase client configuration
+        debug_info = {
+            "supabase_url": supabase.supabase_url,
+            "supabase_key": supabase.supabase_key[:20] + "..." if hasattr(supabase, 'supabase_key') else "Not accessible",
+            "url_length": len(supabase.supabase_url),
+            "url_has_newlines": '\n' in supabase.supabase_url,
+            "url_repr": repr(supabase.supabase_url),
+        }
         
-        # Try common table names
-        table_names = ['users', 'ml_stores', 'orders', 'products', 'ml_accounts']
-        
-        for table_name in table_names:
-            try:
-                # Try to select first row to understand structure
-                response = supabase.table(table_name).select("*").limit(1).execute()
-                if response.data:
-                    tables_info[table_name] = {
-                        "exists": True,
-                        "record_count": len(response.data),
-                        "sample_structure": list(response.data[0].keys()) if response.data else []
-                    }
-                else:
-                    # Table exists but is empty
-                    tables_info[table_name] = {
-                        "exists": True,
-                        "record_count": 0,
-                        "sample_structure": []
-                    }
-            except Exception as table_error:
-                tables_info[table_name] = {
-                    "exists": False,
-                    "error": str(table_error)[:100]  # Limit error message length
-                }
-        
-        # Try to get users table specifically since user mentioned 3 users
+        # Test simple operation first
         try:
-            users_response = supabase.table('users').select("*").execute()
-            user_count = len(users_response.data) if users_response.data else 0
-        except:
-            user_count = "error_accessing_users"
+            # Try the simplest possible query
+            simple_test = supabase.rpc("get_schema", {}).execute()
+            schema_result = "RPC call successful"
+        except Exception as rpc_error:
+            schema_result = f"RPC failed: {str(rpc_error)[:100]}"
+        
+        # Try to access users table with minimal query
+        try:
+            users_response = supabase.table('users').select("id").limit(1).execute()
+            users_result = {
+                "success": True,
+                "count": len(users_response.data) if users_response.data else 0
+            }
+        except Exception as users_error:
+            users_result = {
+                "success": False,
+                "error": str(users_error)[:150]
+            }
         
         return {
             "status": "connected",
-            "database": "Supabase",
+            "database": "Supabase", 
             "project_id": "qzexuqkedukcwcyhrpza",
-            "user_count": user_count,
-            "tables": tables_info,
+            "debug_info": debug_info,
+            "schema_test": schema_result,
+            "users_test": users_result,
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
         return {
             "status": "error",
-            "error": str(e)[:200],  # Limit error message length
+            "error": str(e)[:200],
             "timestamp": datetime.now().isoformat()
         }
 
