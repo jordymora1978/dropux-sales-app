@@ -222,15 +222,14 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
             "user_id": current_user["user_id"],
             "company_id": current_user["company_id"],
             "site_id": request.site_id,
+            "nickname": request.store_name or f"Tienda {request.site_id}",  # Required field
             "app_id": request.app_id,
             "app_secret": request.app_secret,
-            "store_name": request.store_name or f"Tienda {request.site_id}",
             "redirect_uri": redirect_uri,
-            "status": "pending_auth",
-            "created_at": datetime.now().isoformat()
+            "status": "pending_auth"
         }
         
-        response = supabase.table('ml_stores').insert(store_data).execute()
+        response = supabase.table('ml_accounts').insert(store_data).execute()
         
         if not response.data:
             raise HTTPException(status_code=500, detail="Failed to create store")
@@ -260,7 +259,7 @@ def get_user_stores(current_user: dict = Depends(verify_token)):
         raise HTTPException(status_code=503, detail="Database not available")
     
     try:
-        response = supabase.table('ml_stores').select("*").eq('user_id', current_user["user_id"]).execute()
+        response = supabase.table('ml_accounts').select("*").eq('user_id', current_user["user_id"]).execute()
         
         # Remove sensitive data (app_secret) from response
         stores = []
@@ -284,7 +283,7 @@ def ml_oauth_callback(code: str, state: str):
     
     try:
         # Get store configuration
-        store_response = supabase.table('ml_stores').select("*").eq('id', state).execute()
+        store_response = supabase.table('ml_accounts').select("*").eq('id', state).execute()
         
         if not store_response.data:
             raise HTTPException(status_code=404, detail="Store not found")
@@ -299,7 +298,7 @@ def ml_oauth_callback(code: str, state: str):
             "connected_at": datetime.now().isoformat()
         }
         
-        supabase.table('ml_stores').update(update_data).eq('id', state).execute()
+        supabase.table('ml_accounts').update(update_data).eq('id', state).execute()
         
         return {
             "message": "Store connected successfully!",
