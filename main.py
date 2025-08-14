@@ -380,9 +380,37 @@ def setup_database_tables(current_user: dict = Depends(verify_token)):
     
     results = {}
     
-    # Try to create a sample ml_accounts record to test structure
+    # Create ml_stores table using SQL function
     try:
-        sample_ml_account = {
+        create_table_sql = """
+        CREATE TABLE IF NOT EXISTS public.ml_stores (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id),
+            company_id INTEGER,
+            site_id VARCHAR(10),
+            app_id VARCHAR(100),
+            app_secret VARCHAR(200),
+            store_name VARCHAR(255),
+            redirect_uri TEXT,
+            status VARCHAR(50) DEFAULT 'pending_auth',
+            access_token TEXT,
+            refresh_token TEXT,
+            auth_code VARCHAR(255),
+            connected_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """
+        
+        # Execute SQL using RPC (if available) or try alternative method
+        try:
+            rpc_result = supabase.rpc('exec_sql', {'sql': create_table_sql}).execute()
+            results["ml_stores_creation"] = "Table created via RPC"
+        except:
+            # Alternative: try to create using PostgREST (might not work)
+            results["ml_stores_creation"] = "RPC not available - manual table creation needed"
+            
+        # Test if table now exists by inserting sample data
+        sample_ml_store = {
             "user_id": current_user["user_id"],
             "company_id": current_user["company_id"],
             "site_id": "MLC",
@@ -390,27 +418,26 @@ def setup_database_tables(current_user: dict = Depends(verify_token)):
             "app_secret": "sample_secret",
             "store_name": "Test Store",
             "redirect_uri": "https://sales.dropux.co/api/ml/callback",
-            "status": "setup_test",
-            "created_at": datetime.now().isoformat()
+            "status": "setup_test"
         }
         
-        # This will fail if columns don't exist, telling us what's missing
-        test_insert = supabase.table('ml_stores').insert(sample_ml_account).execute()
+        test_insert = supabase.table('ml_stores').insert(sample_ml_store).execute()
         
         if test_insert.data:
             # Clean up test record
             supabase.table('ml_stores').delete().eq('status', 'setup_test').execute()
-            results["ml_stores"] = "Table structure OK - created successfully"
+            results["ml_stores_test"] = "Table working - test record created and deleted"
         else:
-            results["ml_stores"] = "Insert failed"
+            results["ml_stores_test"] = "Insert failed"
             
     except Exception as e:
-        results["ml_stores"] = f"Error: {str(e)[:200]}"
+        results["ml_stores_error"] = f"Error: {str(e)[:300]}"
     
     return {
-        "status": "table_setup_test",
+        "status": "table_setup_attempt",
         "results": results,
-        "user": current_user["email"]
+        "user": current_user["email"],
+        "note": "If table creation failed, please create ml_stores table manually in Supabase"
     }
 
 @app.get("/db-test")
