@@ -105,6 +105,18 @@ class LoginResponse(BaseModel):
     token_type: str
     user: dict
 
+class MLStoreSetup(BaseModel):
+    site_id: str  # MLC, MLA, etc.
+    app_id: str   # Client ID from ML developers
+    app_secret: str
+    store_name: str = ""
+
+class MLStoreResponse(BaseModel):
+    store_id: int
+    auth_url: str
+    redirect_uri: str
+    message: str
+
 class APIInfo(BaseModel):
     message: str
     status: str
@@ -194,6 +206,111 @@ def get_current_user(current_user: dict = Depends(verify_token)):
         "user": current_user,
         "message": "Token valid"
     }
+
+@app.post("/api/ml/stores/setup", response_model=MLStoreResponse)
+def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_token)):
+    """Setup a new MercadoLibre store for the authenticated user"""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        # Create redirect URI for this specific store
+        redirect_uri = f"https://sales.dropux.co/api/ml/callback"
+        
+        # Insert store configuration into ml_accounts table
+        store_data = {
+            "user_id": current_user["user_id"],
+            "company_id": current_user["company_id"],
+            "site_id": request.site_id,
+            "app_id": request.app_id,
+            "app_secret": request.app_secret,
+            "store_name": request.store_name or f"Tienda {request.site_id}",
+            "redirect_uri": redirect_uri,
+            "status": "pending_auth",
+            "created_at": datetime.now().isoformat()
+        }
+        
+        response = supabase.table('ml_accounts').insert(store_data).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=500, detail="Failed to create store")
+        
+        store_id = response.data[0]["id"]
+        
+        # Generate MercadoLibre OAuth URL
+        auth_url = f"https://auth.mercadolibre.com.{request.site_id.lower()}/authorization?" + \
+                   f"response_type=code&client_id={request.app_id}&redirect_uri={redirect_uri}&state={store_id}"
+        
+        return MLStoreResponse(
+            store_id=store_id,
+            auth_url=auth_url,
+            redirect_uri=redirect_uri,
+            message="Store configuration saved. Please complete OAuth authorization."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Setup error: {str(e)}")
+
+@app.get("/api/ml/stores")
+def get_user_stores(current_user: dict = Depends(verify_token)):
+    """Get all MercadoLibre stores for the authenticated user"""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        response = supabase.table('ml_accounts').select("*").eq('user_id', current_user["user_id"]).execute()
+        
+        # Remove sensitive data (app_secret) from response
+        stores = []
+        for store in response.data:
+            safe_store = {k: v for k, v in store.items() if k != 'app_secret'}
+            stores.append(safe_store)
+        
+        return {
+            "stores": stores,
+            "count": len(stores)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching stores: {str(e)}")
+
+@app.get("/api/ml/callback")
+def ml_oauth_callback(code: str, state: str):
+    """Handle MercadoLibre OAuth callback"""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        # Get store configuration
+        store_response = supabase.table('ml_accounts').select("*").eq('id', state).execute()
+        
+        if not store_response.data:
+            raise HTTPException(status_code=404, detail="Store not found")
+        
+        store = store_response.data[0]
+        
+        # Exchange code for access token (simplified for now)
+        # In production, you would make a request to ML token endpoint
+        update_data = {
+            "status": "connected",
+            "auth_code": code,
+            "connected_at": datetime.now().isoformat()
+        }
+        
+        supabase.table('ml_accounts').update(update_data).eq('id', state).execute()
+        
+        return {
+            "message": "Store connected successfully!",
+            "store_id": state,
+            "status": "connected"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Callback error: {str(e)}")
 
 @app.get("/test")
 def test_endpoint():
@@ -286,12 +403,23 @@ def test_database():
                         "sample_record": response.data[0] if response.data else None
                     }
                 else:
-                    tables_info[table_name] = {
-                        "exists": True,
-                        "count": 0,
-                        "columns": [],
-                        "sample_record": None
-                    }
+                    # Table exists but is empty - try to get column info differently
+                    try:
+                        # Insert a test record to see table structure (if table has columns)
+                        test_insert = supabase.table(table_name).insert({"test": "test"}).execute()
+                        tables_info[table_name] = {
+                            "exists": True,
+                            "count": 0,
+                            "columns": "empty_table_could_not_determine",
+                            "sample_record": None
+                        }
+                    except Exception as col_error:
+                        tables_info[table_name] = {
+                            "exists": True,
+                            "count": 0, 
+                            "columns": f"empty_table_error: {str(col_error)[:50]}",
+                            "sample_record": None
+                        }
             except Exception as e:
                 tables_info[table_name] = {
                     "exists": False,
