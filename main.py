@@ -230,7 +230,7 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
             "created_at": datetime.now().isoformat()
         }
         
-        response = supabase.table('ml_accounts').insert(store_data).execute()
+        response = supabase.table('ml_stores').insert(store_data).execute()
         
         if not response.data:
             raise HTTPException(status_code=500, detail="Failed to create store")
@@ -260,7 +260,7 @@ def get_user_stores(current_user: dict = Depends(verify_token)):
         raise HTTPException(status_code=503, detail="Database not available")
     
     try:
-        response = supabase.table('ml_accounts').select("*").eq('user_id', current_user["user_id"]).execute()
+        response = supabase.table('ml_stores').select("*").eq('user_id', current_user["user_id"]).execute()
         
         # Remove sensitive data (app_secret) from response
         stores = []
@@ -284,7 +284,7 @@ def ml_oauth_callback(code: str, state: str):
     
     try:
         # Get store configuration
-        store_response = supabase.table('ml_accounts').select("*").eq('id', state).execute()
+        store_response = supabase.table('ml_stores').select("*").eq('id', state).execute()
         
         if not store_response.data:
             raise HTTPException(status_code=404, detail="Store not found")
@@ -299,7 +299,7 @@ def ml_oauth_callback(code: str, state: str):
             "connected_at": datetime.now().isoformat()
         }
         
-        supabase.table('ml_accounts').update(update_data).eq('id', state).execute()
+        supabase.table('ml_stores').update(update_data).eq('id', state).execute()
         
         return {
             "message": "Store connected successfully!",
@@ -395,17 +395,17 @@ def setup_database_tables(current_user: dict = Depends(verify_token)):
         }
         
         # This will fail if columns don't exist, telling us what's missing
-        test_insert = supabase.table('ml_accounts').insert(sample_ml_account).execute()
+        test_insert = supabase.table('ml_stores').insert(sample_ml_account).execute()
         
         if test_insert.data:
             # Clean up test record
-            supabase.table('ml_accounts').delete().eq('status', 'setup_test').execute()
-            results["ml_accounts"] = "Table structure OK"
+            supabase.table('ml_stores').delete().eq('status', 'setup_test').execute()
+            results["ml_stores"] = "Table structure OK - created successfully"
         else:
-            results["ml_accounts"] = "Insert failed"
+            results["ml_stores"] = "Insert failed"
             
     except Exception as e:
-        results["ml_accounts"] = f"Error: {str(e)[:200]}"
+        results["ml_stores"] = f"Error: {str(e)[:200]}"
     
     return {
         "status": "table_setup_test",
