@@ -5,10 +5,3 @@ builder = "nixpacks"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-
-[[services]]
-name = "dropux-api"
-source = "backend"
-
-[services.variables]
-PORT = "8000"

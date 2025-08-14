@@ -1,0 +1,13 @@
+[phases.build]
+dependsOn = ["install"]
+cmds = ["echo 'Build complete'"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = ["pip install -r requirements.txt"]
+
+[phases.setup]
+nixPkgs = ["python310", "pip"]
+
+[start]
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
