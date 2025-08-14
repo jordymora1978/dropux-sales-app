@@ -154,14 +154,22 @@ npm start
 
 ## 🔐 CONFIGURACIÓN DE SEGURIDAD
 
-### Variables de Entorno (.env)
+### Variables de Entorno - NUEVA ARQUITECTURA MULTI-TENANT
 ```env
-DATABASE_URL=postgresql://user:pass@localhost/db
-SECRET_KEY=your-secret-key
-ML_CLIENT_ID=your-ml-client-id
-ML_CLIENT_SECRET=your-ml-client-secret
-ANICAM_API_KEY=your-anicam-key
-CHILEXPRESS_API_KEY=your-chilexpress-key
+# Configuración de App (en Railway)
+APP_ENV=production
+DEBUG=false
+
+# JWT Authentication
+JWT_SECRET_KEY=dropux_jwt_super_secret_key_2024_v2_production
+JWT_ALGORITHM=HS256
+
+# Supabase (pendiente configurar)
+SUPABASE_URL=<pendiente_crear_proyecto>
+SUPABASE_KEY=<pendiente_crear_proyecto>
+
+# NO MAS VARIABLES ML - Cada usuario trae sus propias credenciales
+# Las credenciales ML se guardan en la base de datos, no en variables de entorno
 ```
 
 ## ⚠️ ESTRATEGIA DE MIGRACIÓN (CONFIDENCIAL)
@@ -187,27 +195,22 @@ CHILEXPRESS_API_KEY=your-chilexpress-key
    - Apagar DigitalOcean
    - Ahorro inmediato de $245/mes
 
-## 📊 ESTADO DE IMPLEMENTACIÓN
+## 📊 ESTADO DE IMPLEMENTACIÓN - ACTUALIZADO 14 AGOSTO 2025
 
-### ✅ COMPLETADO - DROPUX BÁSICO FUNCIONANDO
-- ✅ Backend FastAPI básico con Supabase PostgreSQL
-- ✅ Base de datos profesional multi-tenant (8 tablas)
-- ✅ Autenticación JWT con roles (master_admin, operator, viewer)
-- ✅ Modelos SQLAlchemy conectados y funcionando
-- ✅ Frontend React completo y funcional
-- ✅ App MercadoLibre "Todoencargo Sales App" creada
-- ✅ OAuth MercadoLibre funcionando (CLIENT_ID: 6996757760934434)
-- ✅ Endpoints ML: /ml/auth, /ml/callback, /webhooks/ml
-- ✅ Configuración para sales.dropux.co
-- ✅ CORS configurado correctamente
+### ✅ COMPLETADO - DROPUX EN PRODUCCIÓN
+- ✅ Backend FastAPI desplegado en Railway
+- ✅ Dominio sales.dropux.co configurado y funcionando
+- ✅ SSL certificado activo
+- ✅ GitHub repo: https://github.com/jordymora1978/dropux-sales-app
+- ✅ Endpoints básicos funcionando en producción
+- ✅ Variables de entorno configuradas (APP_ENV, JWT, etc.)
+- ✅ Arquitectura multi-tenant diseñada (cada usuario trae su propia app ML)
 
-### 🚀 EN PROCESO - DEPLOY A PRODUCCIÓN
-- 🔄 Crear repositorio GitHub
-- ⏳ Subir código a GitHub
-- ⏳ Deploy a Railway
-- ⏳ Configurar dominio sales.dropux.co
-- ⏳ Variables de entorno en producción
-- ⏳ Probar OAuth en producción
+### 🚀 EN PROCESO - INTEGRACIÓN COMPLETA
+- 🔄 Configurar Supabase (base de datos)
+- 🔄 Implementar autenticación JWT completa
+- ⏳ Crear UI para conectar tiendas ML (cada usuario su app)
+- ⏳ Endpoints para gestión de tiendas ML multi-tenant
 
 ### 📝 PENDIENTE - FUNCIONALIDADES AVANZADAS
 - ⏳ Gestión completa de órdenes ML
@@ -307,6 +310,6 @@ npm run build
 
 ---
 
-**📅 Última actualización:** 12 de Agosto, 2025
-**📊 Estado:** REESTRUCTURADO Y ORGANIZADO ✅
-**🎯 Próximo objetivo:** Deploy en Railway con GitHub
+**📅 Última actualización:** 14 de Agosto, 2025
+**📊 Estado:** EN PRODUCCIÓN - sales.dropux.co ✅
+**🎯 Próximo objetivo:** Configurar Supabase y autenticación JWT
