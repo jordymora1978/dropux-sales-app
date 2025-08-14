@@ -1,9 +1,2 @@
 fastapi
-uvicorn[standard]
-supabase
-PyJWT
-python-multipart
-python-dotenv
-httpx
-sqlalchemy
-psycopg2-binary
+uvicorn
