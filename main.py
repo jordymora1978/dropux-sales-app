@@ -13,8 +13,10 @@ load_dotenv()
 # Initialize Supabase client
 supabase: Optional[Client] = None
 try:
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY")
+    # TEMPORARY: Hardcoded while Railway variables issue is resolved
+    supabase_url = os.getenv("SUPABASE_URL") or "https://qzexuqkedukcwcyhrpza.supabase.co"
+    supabase_key = os.getenv("SUPABASE_KEY") or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZXh1cWtlZHVrY3djeWhycHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3NDEzODcsImV4cCI6MjA2OTMxNzM4N30.T_lXTVGZCFGA5rjVWQNo3WphIE2YPaifxonHIGPMkI0"
+    
     if supabase_url and supabase_key:
         supabase = create_client(supabase_url, supabase_key)
         print("✅ Supabase connected successfully")
@@ -33,7 +35,9 @@ app = FastAPI(
 )
 
 # CORS middleware - production ready
-cors_origins = ["*"] if os.getenv("APP_ENV") != "production" else [
+# TEMPORARY: Hardcoded while Railway variables issue is resolved
+app_env = os.getenv("APP_ENV") or "production"
+cors_origins = ["*"] if app_env != "production" else [
     "https://dropux.co",
     "https://sales.dropux.co",
     "https://www.dropux.co"
@@ -128,7 +132,7 @@ def system_status():
         "api": "DROPUX",
         "version": "2.0.0",
         "status": "operational",
-        "environment": os.getenv("APP_ENV", "development"),
+        "environment": app_env,
         "timestamp": datetime.now().isoformat(),
         "features": {
             "authentication": bool(os.getenv("JWT_SECRET_KEY")),
