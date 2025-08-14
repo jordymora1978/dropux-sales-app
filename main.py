@@ -17,11 +17,16 @@ try:
     supabase_key = os.getenv("SUPABASE_KEY")
     
     if supabase_url and supabase_key:
-        # Clean the URLs of any potential whitespace/newlines
-        supabase_url = supabase_url.strip()
-        supabase_key = supabase_key.strip()
+        # Clean the URLs of any potential whitespace/newlines and fix malformed URLs
+        supabase_url = supabase_url.replace('\n', '').replace(' ', '').strip()
+        supabase_key = supabase_key.replace('\n', '').replace(' ', '').strip()
+        
+        # Ensure URL is properly formatted
+        if not supabase_url.startswith('https://'):
+            supabase_url = 'https://' + supabase_url.replace('https://', '')
+        
         supabase = create_client(supabase_url, supabase_key)
-        print("✅ Supabase connected successfully")
+        print(f"✅ Supabase connected successfully to {supabase_url}")
     else:
         print("⚠️ Supabase credentials not found")
 except Exception as e:
@@ -158,12 +163,14 @@ def test_database():
     
     try:
         # Debug the Supabase client configuration
+        raw_url = os.getenv("SUPABASE_URL", "NOT_SET")
+        cleaned_url = supabase.supabase_url if supabase else "NOT_CONNECTED"
+        
         debug_info = {
-            "supabase_url": supabase.supabase_url,
-            "supabase_key": supabase.supabase_key[:20] + "..." if hasattr(supabase, 'supabase_key') else "Not accessible",
-            "url_length": len(supabase.supabase_url),
-            "url_has_newlines": '\n' in supabase.supabase_url,
-            "url_repr": repr(supabase.supabase_url),
+            "raw_env_url": repr(raw_url),
+            "cleaned_url": cleaned_url,
+            "url_length": len(cleaned_url) if isinstance(cleaned_url, str) else 0,
+            "url_fixed": raw_url != cleaned_url if raw_url != "NOT_SET" else False,
         }
         
         # Test simple operation first
