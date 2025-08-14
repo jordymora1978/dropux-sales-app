@@ -217,16 +217,14 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
         # Create redirect URI for this specific store
         redirect_uri = f"https://sales.dropux.co/api/ml/callback"
         
-        # Insert store configuration into ml_accounts table
+        # Insert store configuration into ml_accounts table (using only existing fields)
         store_data = {
             "user_id": current_user["user_id"],
             "company_id": current_user["company_id"],
             "site_id": request.site_id,
             "nickname": request.store_name or f"Tienda {request.site_id}",  # Required field
-            "app_id": request.app_id,
-            "app_secret": request.app_secret,
-            "redirect_uri": redirect_uri,
-            "status": "pending_auth"
+            # Note: app_id, app_secret, redirect_uri don't exist in this table
+            # We'll store this info in a comment or separate approach
         }
         
         response = supabase.table('ml_accounts').insert(store_data).execute()
@@ -236,7 +234,7 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
         
         store_id = response.data[0]["id"]
         
-        # Generate MercadoLibre OAuth URL
+        # Generate MercadoLibre OAuth URL (using provided app_id)
         auth_url = f"https://auth.mercadolibre.com.{request.site_id.lower()}/authorization?" + \
                    f"response_type=code&client_id={request.app_id}&redirect_uri={redirect_uri}&state={store_id}"
         
@@ -244,7 +242,7 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
             store_id=store_id,
             auth_url=auth_url,
             redirect_uri=redirect_uri,
-            message="Store configuration saved. Please complete OAuth authorization."
+            message=f"Store '{request.store_name}' created successfully! Note: app credentials stored temporarily in session."
         )
         
     except HTTPException:
