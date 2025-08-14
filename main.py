@@ -4,9 +4,25 @@ from pydantic import BaseModel
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from supabase import create_client, Client
+from typing import Optional
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Supabase client
+supabase: Optional[Client] = None
+try:
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
+    if supabase_url and supabase_key:
+        supabase = create_client(supabase_url, supabase_key)
+        print("✅ Supabase connected successfully")
+    else:
+        print("⚠️ Supabase credentials not found")
+except Exception as e:
+    print(f"❌ Supabase connection error: {e}")
+    supabase = None
 
 app = FastAPI(
     title="DROPUX API", 
@@ -116,18 +132,43 @@ def system_status():
         "timestamp": datetime.now().isoformat(),
         "features": {
             "authentication": bool(os.getenv("JWT_SECRET_KEY")),
-            "database": bool(os.getenv("SUPABASE_URL")),
-            "mercadolibre": bool(os.getenv("ML_CLIENT_ID")),
+            "database": supabase is not None,
+            "mercadolibre": False,  # Now multi-tenant, no global ML vars
             "cors_enabled": True
         },
         "debug_info": {
             "app_env": os.getenv("APP_ENV"),
             "has_jwt_key": bool(os.getenv("JWT_SECRET_KEY")),
-            "has_ml_client": bool(os.getenv("ML_CLIENT_ID")),
+            "supabase_connected": supabase is not None,
             "is_railway": bool(os.getenv("RAILWAY_ENVIRONMENT")),
             "port": os.getenv("PORT")
         }
     }
+
+@app.get("/db-test")
+async def test_database():
+    """Test Supabase connection and list tables"""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not connected")
+    
+    try:
+        # Try to query a simple table or get table info
+        # This will verify the connection works
+        response = supabase.table('users').select("count", count='exact').execute()
+        
+        return {
+            "status": "connected",
+            "database": "Supabase",
+            "project_id": "qzexuqkedukcwcyhrpza",
+            "users_count": response.count if hasattr(response, 'count') else 0,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 if __name__ == "__main__":
     import uvicorn
