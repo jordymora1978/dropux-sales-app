@@ -13,9 +13,8 @@ load_dotenv()
 # Initialize Supabase client
 supabase: Optional[Client] = None
 try:
-    # TEMPORARY: Hardcoded while Railway variables issue is resolved
-    supabase_url = os.getenv("SUPABASE_URL") or "https://qzexuqkedukcwcyhrpza.supabase.co"
-    supabase_key = os.getenv("SUPABASE_KEY") or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZXh1cWtlZHVrY3djeWhycHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3NDEzODcsImV4cCI6MjA2OTMxNzM4N30.T_lXTVGZCFGA5rjVWQNo3WphIE2YPaifxonHIGPMkI0"
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
     
     if supabase_url and supabase_key:
         supabase = create_client(supabase_url, supabase_key)
@@ -35,8 +34,7 @@ app = FastAPI(
 )
 
 # CORS middleware - production ready
-# TEMPORARY: Hardcoded while Railway variables issue is resolved
-app_env = os.getenv("APP_ENV") or "production"
+app_env = os.getenv("APP_ENV", "development")
 cors_origins = ["*"] if app_env != "production" else [
     "https://dropux.co",
     "https://sales.dropux.co",
@@ -113,8 +111,8 @@ def environment_check():
             "DEBUG": os.getenv("DEBUG") is not None,
             "JWT_SECRET_KEY": os.getenv("JWT_SECRET_KEY") is not None,
             "JWT_ALGORITHM": os.getenv("JWT_ALGORITHM") is not None,
-            "ML_CLIENT_ID": os.getenv("ML_CLIENT_ID") is not None,
-            "ML_CLIENT_SECRET": os.getenv("ML_CLIENT_SECRET") is not None,
+            "SUPABASE_URL": os.getenv("SUPABASE_URL") is not None,
+            "SUPABASE_KEY": os.getenv("SUPABASE_KEY") is not None,
             "RAILWAY_ENVIRONMENT": os.getenv("RAILWAY_ENVIRONMENT") is not None,
             "PORT": os.getenv("PORT") is not None
         },
