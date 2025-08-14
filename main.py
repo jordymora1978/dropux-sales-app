@@ -173,34 +173,51 @@ def test_database():
             "url_fixed": raw_url != cleaned_url if raw_url != "NOT_SET" else False,
         }
         
-        # Test simple operation first
-        try:
-            # Try the simplest possible query
-            simple_test = supabase.rpc("get_schema", {}).execute()
-            schema_result = "RPC call successful"
-        except Exception as rpc_error:
-            schema_result = f"RPC failed: {str(rpc_error)[:100]}"
+        # Now that URL is fixed, get comprehensive database info
+        tables_info = {}
+        table_names = ['users', 'ml_stores', 'orders', 'products', 'ml_accounts']
         
-        # Try to access users table with minimal query
+        for table_name in table_names:
+            try:
+                # Get count and sample data
+                response = supabase.table(table_name).select("*").execute()
+                if response.data:
+                    tables_info[table_name] = {
+                        "exists": True,
+                        "count": len(response.data),
+                        "columns": list(response.data[0].keys()) if response.data else [],
+                        "sample_record": response.data[0] if response.data else None
+                    }
+                else:
+                    tables_info[table_name] = {
+                        "exists": True,
+                        "count": 0,
+                        "columns": [],
+                        "sample_record": None
+                    }
+            except Exception as e:
+                tables_info[table_name] = {
+                    "exists": False,
+                    "error": str(e)[:100]
+                }
+        
+        # Get total user count as mentioned by user (expected 3)
         try:
-            users_response = supabase.table('users').select("id").limit(1).execute()
-            users_result = {
-                "success": True,
-                "count": len(users_response.data) if users_response.data else 0
-            }
-        except Exception as users_error:
-            users_result = {
-                "success": False,
-                "error": str(users_error)[:150]
-            }
+            all_users = supabase.table('users').select("*").execute()
+            total_users = len(all_users.data) if all_users.data else 0
+            users_preview = all_users.data[:3] if all_users.data else []
+        except Exception as e:
+            total_users = f"Error: {str(e)[:50]}"
+            users_preview = []
         
         return {
-            "status": "connected",
-            "database": "Supabase", 
+            "status": "connected", 
+            "database": "Supabase",
             "project_id": "qzexuqkedukcwcyhrpza",
+            "total_users": total_users,
+            "users_preview": users_preview,
+            "tables": tables_info,
             "debug_info": debug_info,
-            "schema_test": schema_result,
-            "users_test": users_result,
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
