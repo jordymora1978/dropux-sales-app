@@ -148,16 +148,13 @@ def system_status():
     }
 
 @app.get("/db-test")
-async def test_database():
+def test_database():
     """Test Supabase connection and list tables"""
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not connected")
     
     try:
-        # Test users table
-        users_response = supabase.table('users').select("count", count='exact').execute()
-        
-        # Test if we have other tables
+        # Test if we have tables and get their structure
         tables_info = {}
         
         # Try common table names
@@ -165,22 +162,46 @@ async def test_database():
         
         for table_name in table_names:
             try:
-                response = supabase.table(table_name).select("count", count='exact').execute()
-                tables_info[table_name] = response.count if hasattr(response, 'count') else 0
-            except:
-                tables_info[table_name] = "table not found"
+                # Try to select first row to understand structure
+                response = supabase.table(table_name).select("*").limit(1).execute()
+                if response.data:
+                    tables_info[table_name] = {
+                        "exists": True,
+                        "record_count": len(response.data),
+                        "sample_structure": list(response.data[0].keys()) if response.data else []
+                    }
+                else:
+                    # Table exists but is empty
+                    tables_info[table_name] = {
+                        "exists": True,
+                        "record_count": 0,
+                        "sample_structure": []
+                    }
+            except Exception as table_error:
+                tables_info[table_name] = {
+                    "exists": False,
+                    "error": str(table_error)[:100]  # Limit error message length
+                }
+        
+        # Try to get users table specifically since user mentioned 3 users
+        try:
+            users_response = supabase.table('users').select("*").execute()
+            user_count = len(users_response.data) if users_response.data else 0
+        except:
+            user_count = "error_accessing_users"
         
         return {
             "status": "connected",
             "database": "Supabase",
             "project_id": "qzexuqkedukcwcyhrpza",
+            "user_count": user_count,
             "tables": tables_info,
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
         return {
             "status": "error",
-            "error": str(e),
+            "error": str(e)[:200],  # Limit error message length
             "timestamp": datetime.now().isoformat()
         }
 
