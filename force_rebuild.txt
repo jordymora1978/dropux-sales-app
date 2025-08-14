@@ -1,2 +1,2 @@
-Force Railway rebuild: 2025-08-14 22:45
-This file forces Railway to rebuild with environment variables.
+Force Railway rebuild: 2025-08-14 23:11
+This file forces Railway to rebuild with debugging changes for Supabase table access.
