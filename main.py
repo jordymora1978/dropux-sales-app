@@ -381,9 +381,9 @@ def check_ml_accounts_structure(current_user: dict = Depends(verify_token)):
     try:
         # Try different combinations to see what works
         test_cases = [
-            {"user_id": current_user["user_id"], "company_id": current_user["company_id"]},  # Basic required
-            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC"},  # With site
-            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC", "access_token": "test_token"},  # More fields
+            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC", "nickname": "test"},  # All required fields
+            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC", "nickname": "test", "app_id": "123"},  # With app_id
+            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC", "nickname": "test", "access_token": "token", "refresh_token": "refresh"},  # With tokens
         ]
         
         results = {}
