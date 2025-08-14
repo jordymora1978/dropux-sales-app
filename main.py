@@ -17,6 +17,9 @@ try:
     supabase_key = os.getenv("SUPABASE_KEY")
     
     if supabase_url and supabase_key:
+        # Clean the URLs of any potential whitespace/newlines
+        supabase_url = supabase_url.strip()
+        supabase_key = supabase_key.strip()
         supabase = create_client(supabase_url, supabase_key)
         print("✅ Supabase connected successfully")
     else:
