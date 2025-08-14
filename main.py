@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+import jwt
+import hashlib
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from typing import Optional
@@ -57,7 +60,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ==================== AUTHENTICATION ====================
+security = HTTPBearer()
+
+JWT_SECRET = os.getenv("JWT_SECRET_KEY", "dropux_jwt_super_secret_key_2024_v2_production")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    return hash_password(password) == hashed
+
+def create_jwt_token(user_data: dict) -> str:
+    """Create JWT token for user"""
+    payload = {
+        "user_id": user_data["id"],
+        "email": user_data["email"],
+        "role": user_data["role"],
+        "company_id": user_data["company_id"],
+        "exp": datetime.utcnow() + timedelta(hours=24)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verify JWT token and return user data"""
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 # ==================== PYDANTIC MODELS ====================
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: dict
+
 class APIInfo(BaseModel):
     message: str
     status: str
@@ -97,6 +144,56 @@ def health_check():
         timestamp=datetime.now().isoformat(),
         environment=os.getenv("APP_ENV", "development")
     )
+
+@app.post("/auth/login", response_model=LoginResponse)
+def login(request: LoginRequest):
+    """Login endpoint - authenticate user and return JWT token"""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        # Find user by email
+        response = supabase.table('users').select("*").eq('email', request.email).eq('active', True).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        user = response.data[0]
+        
+        # Verify password
+        if not verify_password(request.password, user['password_hash']):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Create JWT token
+        token = create_jwt_token(user)
+        
+        # Remove sensitive data from user object
+        safe_user = {
+            "id": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "company_id": user["company_id"],
+            "created_at": user["created_at"]
+        }
+        
+        return LoginResponse(
+            access_token=token,
+            token_type="bearer",
+            user=safe_user
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
+
+@app.get("/auth/me")
+def get_current_user(current_user: dict = Depends(verify_token)):
+    """Get current authenticated user information"""
+    return {
+        "user": current_user,
+        "message": "Token valid"
+    }
 
 @app.get("/test")
 def test_endpoint():
