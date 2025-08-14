@@ -156,15 +156,27 @@ async def test_database():
         raise HTTPException(status_code=503, detail="Database not connected")
     
     try:
-        # Try to query a simple table or get table info
-        # This will verify the connection works
-        response = supabase.table('users').select("count", count='exact').execute()
+        # Test users table
+        users_response = supabase.table('users').select("count", count='exact').execute()
+        
+        # Test if we have other tables
+        tables_info = {}
+        
+        # Try common table names
+        table_names = ['users', 'ml_stores', 'orders', 'products', 'ml_accounts']
+        
+        for table_name in table_names:
+            try:
+                response = supabase.table(table_name).select("count", count='exact').execute()
+                tables_info[table_name] = response.count if hasattr(response, 'count') else 0
+            except:
+                tables_info[table_name] = "table not found"
         
         return {
             "status": "connected",
             "database": "Supabase",
             "project_id": "qzexuqkedukcwcyhrpza",
-            "users_count": response.count if hasattr(response, 'count') else 0,
+            "tables": tables_info,
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
