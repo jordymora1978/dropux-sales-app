@@ -369,6 +369,50 @@ def system_status():
         }
     }
 
+@app.post("/admin/setup-tables")
+def setup_database_tables(current_user: dict = Depends(verify_token)):
+    """Setup required database tables - ADMIN ONLY"""
+    if current_user.get("role") != "master_admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    results = {}
+    
+    # Try to create a sample ml_accounts record to test structure
+    try:
+        sample_ml_account = {
+            "user_id": current_user["user_id"],
+            "company_id": current_user["company_id"],
+            "site_id": "MLC",
+            "app_id": "sample_app_id",
+            "app_secret": "sample_secret",
+            "store_name": "Test Store",
+            "redirect_uri": "https://sales.dropux.co/api/ml/callback",
+            "status": "setup_test",
+            "created_at": datetime.now().isoformat()
+        }
+        
+        # This will fail if columns don't exist, telling us what's missing
+        test_insert = supabase.table('ml_accounts').insert(sample_ml_account).execute()
+        
+        if test_insert.data:
+            # Clean up test record
+            supabase.table('ml_accounts').delete().eq('status', 'setup_test').execute()
+            results["ml_accounts"] = "Table structure OK"
+        else:
+            results["ml_accounts"] = "Insert failed"
+            
+    except Exception as e:
+        results["ml_accounts"] = f"Error: {str(e)[:200]}"
+    
+    return {
+        "status": "table_setup_test",
+        "results": results,
+        "user": current_user["email"]
+    }
+
 @app.get("/db-test")
 def test_database():
     """Test Supabase connection and diagnose table access issues"""
