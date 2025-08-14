@@ -369,6 +369,51 @@ def system_status():
         }
     }
 
+@app.get("/admin/check-ml-accounts")
+def check_ml_accounts_structure(current_user: dict = Depends(verify_token)):
+    """Check existing ml_accounts table structure"""
+    if current_user.get("role") != "master_admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    # Try to insert a minimal record to see what columns are required
+    try:
+        # Try different combinations to see what works
+        test_cases = [
+            {"id": 999, "test": "test"},  # Minimal test
+            {"user_id": current_user["user_id"]},  # User only
+            {"site_id": "MLC"},  # Site only
+            {"user_id": current_user["user_id"], "site_id": "MLC"}  # Combined
+        ]
+        
+        results = {}
+        
+        for i, test_data in enumerate(test_cases):
+            try:
+                response = supabase.table('ml_accounts').insert(test_data).execute()
+                if response.data:
+                    # Clean up immediately
+                    supabase.table('ml_accounts').delete().eq('id', response.data[0]['id']).execute()
+                    results[f"test_{i}"] = f"SUCCESS: {list(test_data.keys())}"
+                    break  # If one works, we're good
+                else:
+                    results[f"test_{i}"] = f"FAILED: {list(test_data.keys())}"
+            except Exception as e:
+                results[f"test_{i}"] = f"ERROR: {str(e)[:100]}"
+        
+        return {
+            "table": "ml_accounts",
+            "test_results": results,
+            "user": current_user["email"]
+        }
+        
+    except Exception as e:
+        return {
+            "error": f"General error: {str(e)[:200]}"
+        }
+
 @app.post("/admin/setup-tables")
 def setup_database_tables(current_user: dict = Depends(verify_token)):
     """Setup required database tables - ADMIN ONLY"""
