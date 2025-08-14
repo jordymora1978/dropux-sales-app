@@ -93,10 +93,14 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
 @app.get("/")
 def read_root():
     return {
-        "message": "Sistema de Ventas API v2.0", 
+        "message": "DROPUX API v2.0", 
         "status": "funcionando",
         "docs": "/docs"
     }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "DROPUX API"}
 
 def hash_password(password: str) -> str:
     """Hash password usando SHA256"""
@@ -338,6 +342,9 @@ async def ml_webhook(request: dict):
 
 if __name__ == "__main__":
     import uvicorn
-    print("Iniciando DROPUX API en http://127.0.0.1:8000")
-    print("Documentacion en http://127.0.0.1:8000/docs")
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    host = "0.0.0.0" if os.getenv("RAILWAY_ENVIRONMENT") else "127.0.0.1"
+    
+    print(f"Iniciando DROPUX API en http://{host}:{port}")
+    print(f"Documentacion en http://{host}:{port}/docs")
+    uvicorn.run(app, host=host, port=port, reload=True)
