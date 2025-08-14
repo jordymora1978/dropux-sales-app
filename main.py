@@ -382,10 +382,9 @@ def check_ml_accounts_structure(current_user: dict = Depends(verify_token)):
     try:
         # Try different combinations to see what works
         test_cases = [
-            {"id": 999, "test": "test"},  # Minimal test
-            {"user_id": current_user["user_id"]},  # User only
-            {"site_id": "MLC"},  # Site only
-            {"user_id": current_user["user_id"], "site_id": "MLC"}  # Combined
+            {"user_id": current_user["user_id"], "company_id": current_user["company_id"]},  # Basic required
+            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC"},  # With site
+            {"user_id": current_user["user_id"], "company_id": current_user["company_id"], "site_id": "MLC", "access_token": "test_token"},  # More fields
         ]
         
         results = {}
