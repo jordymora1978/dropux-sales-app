@@ -83,6 +83,28 @@ def test_endpoint():
     }
 
 # ==================== UTILITY ENDPOINTS ====================
+@app.get("/env-check")
+def environment_check():
+    """Check which environment variables are set (for debugging)"""
+    return {
+        "environment": os.getenv("APP_ENV", "NOT_SET"),
+        "variables_detected": {
+            "APP_ENV": os.getenv("APP_ENV") is not None,
+            "DEBUG": os.getenv("DEBUG") is not None,
+            "JWT_SECRET_KEY": os.getenv("JWT_SECRET_KEY") is not None,
+            "JWT_ALGORITHM": os.getenv("JWT_ALGORITHM") is not None,
+            "ML_CLIENT_ID": os.getenv("ML_CLIENT_ID") is not None,
+            "ML_CLIENT_SECRET": os.getenv("ML_CLIENT_SECRET") is not None,
+            "RAILWAY_ENVIRONMENT": os.getenv("RAILWAY_ENVIRONMENT") is not None,
+            "PORT": os.getenv("PORT") is not None
+        },
+        "railway_provided": {
+            "RAILWAY_ENVIRONMENT": os.getenv("RAILWAY_ENVIRONMENT"),
+            "RAILWAY_PROJECT_ID": os.getenv("RAILWAY_PROJECT_ID"),
+            "RAILWAY_SERVICE_NAME": os.getenv("RAILWAY_SERVICE_NAME")
+        }
+    }
+
 @app.get("/status")
 def system_status():
     """System status and configuration info"""
@@ -93,10 +115,17 @@ def system_status():
         "environment": os.getenv("APP_ENV", "development"),
         "timestamp": datetime.now().isoformat(),
         "features": {
-            "authentication": False,  # Will be True when JWT is added
-            "database": False,        # Will be True when Supabase is connected
-            "mercadolibre": False,    # Will be True when ML OAuth is added
+            "authentication": bool(os.getenv("JWT_SECRET_KEY")),
+            "database": bool(os.getenv("SUPABASE_URL")),
+            "mercadolibre": bool(os.getenv("ML_CLIENT_ID")),
             "cors_enabled": True
+        },
+        "debug_info": {
+            "app_env": os.getenv("APP_ENV"),
+            "has_jwt_key": bool(os.getenv("JWT_SECRET_KEY")),
+            "has_ml_client": bool(os.getenv("ML_CLIENT_ID")),
+            "is_railway": bool(os.getenv("RAILWAY_ENVIRONMENT")),
+            "port": os.getenv("PORT")
         }
     }
 
