@@ -1,6 +1,16 @@
-# 🚀 GUÍA RÁPIDA DE INICIO - SALES APP
+# 🚀 GUÍA RÁPIDA DE INICIO - DROPUX SALES APP
 
-## ⚡ INICIO RÁPIDO (5 minutos)
+## 🌐 PRODUCCIÓN (¡YA DISPONIBLE!)
+**DROPUX está funcionando en producción:**
+
+- **API Base**: https://sales.dropux.co
+- **Health Check**: https://sales.dropux.co/health
+- **API Docs**: https://sales.dropux.co/docs
+- **ReDoc**: https://sales.dropux.co/redoc
+
+---
+
+## ⚡ DESARROLLO LOCAL (5 minutos)
 
 ### 1. Iniciar Backend API
 ```bash
@@ -99,5 +109,12 @@ npm install
 - Documentación: Ver ARQUITECTURA_SALES_APP.md
 - API Docs: http://127.0.0.1:8000/docs
 
+## 🚀 DEPLOYMENT INFO
+- **Platform**: Railway
+- **Domain**: sales.dropux.co 
+- **SSL**: ✅ Active
+- **Status**: ✅ Live in Production
+- **GitHub**: https://github.com/jordymora1978/dropux-sales-app
+
 ---
-**Última actualización:** 12 de Agosto, 2025
+**Última actualización:** 14 de Agosto, 2025

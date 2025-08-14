@@ -45,7 +45,21 @@ DROPUX uses a microservices architecture:
 
 ---
 
-## Quick Start
-For technical setup and architecture details, see:
+## 🌐 Live Production API
+**DROPUX is now live in production!**
+
+- **API Base**: https://sales.dropux.co
+- **Health Check**: https://sales.dropux.co/health
+- **API Documentation**: https://sales.dropux.co/docs
+- **ReDoc**: https://sales.dropux.co/redoc
+
+## 📋 Development Setup
+For local development and technical details, see:
 - [🚀 Quick Start Guide](QUICK_START_GUIDE.md)
 - [📋 Architecture Documentation](ARQUITECTURA_SALES_APP.md)
+
+## 🚀 Deployment Status
+- ✅ **Backend API**: Live on Railway
+- ✅ **Domain**: sales.dropux.co configured
+- ✅ **SSL**: Certificate active
+- ✅ **Endpoints**: All functional
