@@ -1,0 +1,485 @@
+/* Professional ML Store Connection Component Styles */
+
+.ml-connect-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ml-connect-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Header */
+.ml-connect-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.header-content p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #e2e8f0;
+  color: #374151;
+}
+
+/* Content */
+.ml-connect-content {
+  padding: 24px;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.step.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.step.completed {
+  background: #10b981;
+  color: white;
+}
+
+.step-line {
+  width: 40px;
+  height: 2px;
+  background: #e2e8f0;
+}
+
+/* Form Styles */
+.ml-connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input,
+.form-select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  background: white;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Error Message */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* Submit Button */
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.spinner.large {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Help Section */
+.help-section {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.help-section h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.help-section p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.help-section a {
+  color: #3b82f6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.help-section a:hover {
+  text-decoration: underline;
+}
+
+/* Instructions Section */
+.instructions-section h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.instructions-section p {
+  margin: 0 0 24px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Redirect URI Box */
+.redirect-uri-box {
+  margin-bottom: 24px;
+}
+
+.redirect-uri-box label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.copy-box {
+  display: flex;
+  gap: 8px;
+}
+
+.redirect-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Instructions List */
+.instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.instruction-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.instruction-number {
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.instruction-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.back-btn {
+  padding: 10px 20px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #e2e8f0;
+  color: #374151;
+}
+
+.connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.connect-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Connecting Section */
+.connecting-section {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.connecting-animation {
+  margin-bottom: 24px;
+}
+
+.connecting-section h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.connecting-section p {
+  margin: 0 0 32px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.connecting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .ml-connect-overlay {
+    padding: 10px;
+  }
+  
+  .ml-connect-modal {
+    border-radius: 12px;
+  }
+  
+  .ml-connect-header {
+    padding: 20px 16px 16px;
+  }
+  
+  .ml-connect-content {
+    padding: 20px 16px;
+  }
+  
+  .copy-box {
+    flex-direction: column;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .step-indicator {
+    margin-bottom: 24px;
+  }
+}

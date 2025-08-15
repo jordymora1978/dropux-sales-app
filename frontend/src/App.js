@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, Package, Truck, Eye, MessageSquare, ExternalLink, Sun, Moon, ShoppingCart, Users, Settings, BarChart3, X, Send, HelpCircle, MapPin, FileText, Clipboard, Edit3, Save } from 'lucide-react';
+import { User, Package, Truck, Eye, MessageSquare, ExternalLink, Sun, Moon, ShoppingCart, Users, Settings, BarChart3, X, Send, HelpCircle, MapPin, FileText, Clipboard, Edit3, Save, Store, Plus, CheckCircle, AlertCircle, Globe } from 'lucide-react';
 import './App.css';
 import Login from './components/Login';
+import ConnectMLStore from './components/ConnectMLStore';
 import apiService from './services/api';
 
 const SalesDashboard = () => {
@@ -22,6 +23,10 @@ const SalesDashboard = () => {
   const [messageInput, setMessageInput] = useState('');
   const [isEditingPublication, setIsEditingPublication] = useState(false);
   // const [publicationData, setPublicationData] = useState({}); // Comentado temporalmente
+  
+  // ML Stores states
+  const [showConnectML, setShowConnectML] = useState(false);
+  const [mlStores, setMlStores] = useState([]);
 
   useEffect(() => {
     checkAuth();
@@ -52,6 +57,29 @@ const SalesDashboard = () => {
     setIsAuthenticated(false);
     setUser(null);
   };
+
+  // Load ML stores
+  const loadMLStores = async () => {
+    try {
+      const response = await apiService.request('/api/ml/my-stores');
+      setMlStores(response || []);
+    } catch (error) {
+      console.error('Error loading ML stores:', error);
+    }
+  };
+
+  // Handle successful ML connection
+  const handleMLConnectionSuccess = () => {
+    setShowConnectML(false);
+    loadMLStores(); // Reload stores
+  };
+
+  // Load stores when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadMLStores();
+    }
+  }, [isAuthenticated]);
 
   if (loading) {
     return (
@@ -436,6 +464,16 @@ const SalesDashboard = () => {
             Logística
           </button>
           <button 
+            className={`nav-item ${activeTab === 'ml-stores' ? 'active' : ''}`}
+            onClick={() => setActiveTab('ml-stores')}
+          >
+            <Store size={18} />
+            Tiendas ML
+            {mlStores.length > 0 && (
+              <span className="nav-badge">{mlStores.length}</span>
+            )}
+          </button>
+          <button 
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
@@ -530,8 +568,9 @@ const SalesDashboard = () => {
             </div>
           </div>
 
-          {/* ORDERS CONTAINER */}
-          <div className="orders-container">
+          {/* CONTENT BASED ON ACTIVE TAB */}
+          {activeTab === 'orders' && (
+            <div className="orders-container">
             <div className="orders-header">
               <div className="orders-title">Órdenes Recientes</div>
               <div className="orders-count">{filteredOrders.length} órdenes encontradas</div>
@@ -647,6 +686,138 @@ const SalesDashboard = () => {
               </div>
             </div>
           </div>
+          )}
+
+          {/* ML STORES TAB */}
+          {activeTab === 'ml-stores' && (
+            <div className="ml-stores-container">
+              <div className="ml-stores-header">
+                <div className="ml-stores-title">
+                  <Store size={20} />
+                  Mis Tiendas MercadoLibre
+                </div>
+                <button 
+                  className="connect-store-btn"
+                  onClick={() => setShowConnectML(true)}
+                >
+                  <Plus size={16} />
+                  Conectar Nueva Tienda
+                </button>
+              </div>
+
+              {mlStores.length === 0 ? (
+                <div className="empty-stores">
+                  <Store size={64} />
+                  <h3>No tienes tiendas conectadas</h3>
+                  <p>Conecta tu primera tienda de MercadoLibre para comenzar a gestionar órdenes y productos.</p>
+                  <button 
+                    className="connect-first-store-btn"
+                    onClick={() => setShowConnectML(true)}
+                  >
+                    <Plus size={16} />
+                    Conectar Mi Primera Tienda
+                  </button>
+                </div>
+              ) : (
+                <div className="stores-grid">
+                  {mlStores.map((store) => (
+                    <div key={store.id} className="store-card">
+                      <div className="store-header">
+                        <div className="store-info">
+                          <h4>{store.store_name}</h4>
+                          <p className="store-site">
+                            <Globe size={14} />
+                            {store.site_name} ({store.site_id})
+                          </p>
+                        </div>
+                        <div className={`store-status ${store.is_connected ? 'connected' : 'disconnected'}`}>
+                          {store.is_connected ? (
+                            <>
+                              <CheckCircle size={14} />
+                              Conectada
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle size={14} />
+                              Desconectada
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {store.is_connected && (
+                        <div className="store-details">
+                          <div className="store-nickname">
+                            @{store.nickname || 'Sin nickname'}
+                          </div>
+                          <div className="store-dates">
+                            <span>Conectada: {new Date(store.connected_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="store-actions">
+                        {store.is_connected ? (
+                          <>
+                            <button className="store-action-btn primary">
+                              Ver Órdenes
+                            </button>
+                            <button className="store-action-btn secondary">
+                              Configurar
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            className="store-action-btn primary"
+                            onClick={() => setShowConnectML(true)}
+                          >
+                            Reconectar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* OTHER TABS (Dashboard, Customers, etc.) */}
+          {activeTab === 'dashboard' && (
+            <div className="dashboard-content">
+              <h2>Dashboard - Próximamente</h2>
+              <p>Estadísticas y métricas avanzadas estarán disponibles aquí.</p>
+            </div>
+          )}
+
+          {activeTab === 'customers' && (
+            <div className="customers-content">
+              <h2>Clientes - Próximamente</h2>
+              <p>Gestión de clientes estará disponible aquí.</p>
+            </div>
+          )}
+
+          {activeTab === 'products' && (
+            <div className="products-content">
+              <h2>Productos - Próximamente</h2>
+              <p>Catálogo de productos estará disponible aquí.</p>
+            </div>
+          )}
+
+          {activeTab === 'logistics' && (
+            <div className="logistics-content">
+              <h2>Logística - Próximamente</h2>
+              <p>Gestión de envíos y logística estará disponible aquí.</p>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="settings-content">
+              <h2>Configuración - Próximamente</h2>
+              <p>Configuraciones de la cuenta estarán disponibles aquí.</p>
+            </div>
+          )}
+
         </div>
       </div>
       
@@ -1042,6 +1213,14 @@ const SalesDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL DE CONEXIÓN ML */}
+      {showConnectML && (
+        <ConnectMLStore 
+          onClose={() => setShowConnectML(false)}
+          onSuccess={handleMLConnectionSuccess}
+        />
       )}
     </div>
   );
