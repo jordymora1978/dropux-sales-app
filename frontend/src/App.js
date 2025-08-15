@@ -5,9 +5,23 @@ import Login from './components/Login';
 import apiService from './services/api';
 
 const SalesDashboard = () => {
+  // Authentication states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Dashboard states  
+  const [theme, setTheme] = useState('light');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  // const [currentPage, setCurrentPage] = useState(1); // Comentado temporalmente
+  const [activeTab, setActiveTab] = useState('orders');
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [modalTab, setModalTab] = useState('messages');
+  const [messageInput, setMessageInput] = useState('');
+  const [isEditingPublication, setIsEditingPublication] = useState(false);
+  // const [publicationData, setPublicationData] = useState({}); // Comentado temporalmente
 
   useEffect(() => {
     checkAuth();
@@ -50,17 +64,6 @@ const SalesDashboard = () => {
   if (!isAuthenticated) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
-  const [theme, setTheme] = useState('light');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  // const [currentPage, setCurrentPage] = useState(1); // Comentado temporalmente
-  const [activeTab, setActiveTab] = useState('orders');
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [modalTab, setModalTab] = useState('messages');
-  const [messageInput, setMessageInput] = useState('');
-  const [isEditingPublication, setIsEditingPublication] = useState(false);
-  // const [publicationData, setPublicationData] = useState({}); // Comentado temporalmente
 
   // Datos de ejemplo para el dashboard
   const mockOrders = [
