@@ -387,14 +387,33 @@ async def ml_oauth_callback(
                 </div>
             </div>
             <script>
-                // Auto redirect after 3 seconds
-                setTimeout(() => {{
-                    window.location.href = '{frontend_url}/dashboard?connection=success&store_id={store['id']}';
-                }}, 3000);
+                // Notify parent window of success
+                if (window.opener) {{
+                    window.opener.postMessage({{
+                        type: 'ML_CONNECTION_SUCCESS',
+                        storeId: {store['id']},
+                        storeName: '{user_info.get('nickname', 'Tu tienda')}',
+                        country: 'Colombia'
+                    }}, '{frontend_url}');
+                    
+                    // Close popup after notifying parent
+                    setTimeout(() => {{
+                        window.close();
+                    }}, 2000);
+                }} else {{
+                    // Fallback: redirect to dashboard if not in popup
+                    setTimeout(() => {{
+                        window.location.href = '{frontend_url}/dashboard?connection=success&store_id={store['id']}';
+                    }}, 3000);
+                }}
                 
                 // Also allow manual click
                 document.body.addEventListener('click', () => {{
-                    window.location.href = '{frontend_url}/dashboard?connection=success&store_id={store['id']}';
+                    if (window.opener) {{
+                        window.close();
+                    }} else {{
+                        window.location.href = '{frontend_url}/dashboard?connection=success&store_id={store['id']}';
+                    }}
                 }});
             </script>
         </body>
@@ -499,6 +518,39 @@ async def refresh_store_token(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Token refresh error: {str(e)}")
+
+@router.delete("/stores/{store_id}")
+async def delete_store(
+    store_id: int,
+    current_user: AuthData = Depends(verify_token)
+) -> dict:
+    """Completely delete a ML store from user's account."""
+    
+    supabase = get_supabase()
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        # Verify ownership
+        store_response = supabase.table('ml_accounts').select("*").eq(
+            'id', store_id
+        ).eq('user_id', current_user["user_id"]).execute()
+        
+        if not store_response.data:
+            raise HTTPException(status_code=404, detail="Store not found")
+        
+        # Completely delete the store
+        supabase.table('ml_accounts').delete().eq('id', store_id).execute()
+        
+        return {
+            "status": "success",
+            "message": "Store deleted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Delete error: {str(e)}")
 
 @router.delete("/disconnect/{store_id}")
 async def disconnect_store(
