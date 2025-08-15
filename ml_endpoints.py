@@ -19,9 +19,11 @@ import jwt
 from supabase import create_client
 import os
 
-# Type hints for Python 3.12+
-type AuthData = dict[str, str | int]
-type StoreData = dict[str, str | int | None]
+# Type hints compatible with Python 3.11+
+from typing import Dict, Union, Optional
+
+AuthData = Dict[str, Union[str, int]]
+StoreData = Dict[str, Union[str, int, None]]
 
 # Initialize dependencies locally to avoid circular import
 security = HTTPBearer()
