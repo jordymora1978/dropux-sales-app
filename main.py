@@ -56,7 +56,10 @@ app_env = os.getenv("APP_ENV", "development")
 cors_origins = ["*"] if app_env != "production" else [
     "https://dropux.co",
     "https://sales.dropux.co",
-    "https://www.dropux.co"
+    "https://www.dropux.co",
+    "https://dropux-sales-app.vercel.app",
+    "https://dropux-sales-app-git-master-jordys-projects-89bfd6b6.vercel.app",
+    "http://localhost:3000"
 ]
 
 app.add_middleware(
