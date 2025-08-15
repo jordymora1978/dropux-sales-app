@@ -53,6 +53,16 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Import and include ML endpoints after app creation
+try:
+    from ml_endpoints import router as ml_router
+    app.include_router(ml_router)
+    print("✅ MercadoLibre endpoints loaded successfully")
+except ImportError as e:
+    print(f"⚠️ MercadoLibre endpoints not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading ML endpoints: {e}")
+
 # CORS middleware - production ready
 app_env = os.getenv("APP_ENV", "development")
 
@@ -619,64 +629,48 @@ def setup_database_tables(current_user: dict = Depends(verify_token)):
     
     results = {}
     
-    # Create ml_stores table using SQL function
+    # Read the professional ML stores schema
     try:
-        create_table_sql = """
-        CREATE TABLE IF NOT EXISTS public.ml_stores (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER REFERENCES users(id),
-            company_id INTEGER,
-            site_id VARCHAR(10),
-            app_id VARCHAR(100),
-            app_secret VARCHAR(200),
-            store_name VARCHAR(255),
-            redirect_uri TEXT,
-            status VARCHAR(50) DEFAULT 'pending_auth',
-            access_token TEXT,
-            refresh_token TEXT,
-            auth_code VARCHAR(255),
-            connected_at TIMESTAMP,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
-        """
+        schema_path = os.path.join(os.path.dirname(__file__), "database_schema_ml_stores.sql")
         
-        # Execute SQL using RPC (if available) or try alternative method
-        try:
-            rpc_result = supabase.rpc('exec_sql', {'sql': create_table_sql}).execute()
-            results["ml_stores_creation"] = "Table created via RPC"
-        except:
-            # Alternative: try to create using PostgREST (might not work)
-            results["ml_stores_creation"] = "RPC not available - manual table creation needed"
+        if os.path.exists(schema_path):
+            with open(schema_path, 'r', encoding='utf-8') as f:
+                create_table_sql = f.read()
             
-        # Test if table now exists by inserting sample data
-        sample_ml_store = {
-            "user_id": current_user["user_id"],
-            "company_id": current_user["company_id"],
-            "site_id": "MLC",
-            "app_id": "sample_app_id",
-            "app_secret": "sample_secret",
-            "store_name": "Test Store",
-            "redirect_uri": "https://sales.dropux.co/api/ml/callback",
-            "status": "setup_test"
-        }
-        
-        test_insert = supabase.table('ml_stores').insert(sample_ml_store).execute()
-        
-        if test_insert.data:
-            # Clean up test record
-            supabase.table('ml_stores').delete().eq('status', 'setup_test').execute()
-            results["ml_stores_test"] = "Table working - test record created and deleted"
+            # Execute SQL using RPC (if available)
+            try:
+                rpc_result = supabase.rpc('exec_sql', {'sql': create_table_sql}).execute()
+                results["ml_stores_creation"] = "Professional ml_stores table created successfully"
+            except Exception as rpc_error:
+                results["ml_stores_creation"] = f"RPC not available: {str(rpc_error)[:200]}"
+                results["note"] = "Please execute the SQL manually in Supabase SQL Editor"
         else:
-            results["ml_stores_test"] = "Insert failed"
+            results["ml_stores_creation"] = "Schema file not found"
+            
+        # Test if table exists and works
+        test_select = supabase.table('ml_stores').select("id").limit(1).execute()
+        
+        if hasattr(test_select, 'data'):
+            results["ml_stores_test"] = "Table exists and accessible"
+        else:
+            results["ml_stores_test"] = "Table might not exist or be accessible"
             
     except Exception as e:
         results["ml_stores_error"] = f"Error: {str(e)[:300]}"
     
     return {
-        "status": "table_setup_attempt",
+        "status": "professional_table_setup",
         "results": results,
         "user": current_user["email"],
-        "note": "If table creation failed, please create ml_stores table manually in Supabase"
+        "features": [
+            "Multi-tenant isolation with RLS",
+            "Encrypted secrets storage",
+            "CSRF protection with state tokens", 
+            "Professional OAuth flow",
+            "Performance indexes",
+            "Audit trails"
+        ],
+        "note": "If RPC failed, please run database_schema_ml_stores.sql manually in Supabase"
     }
 
 @app.get("/db-test")
