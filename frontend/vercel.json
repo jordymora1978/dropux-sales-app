@@ -1,0 +1,11 @@
+{
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://web-production-ae7da.up.railway.app",
+      "REACT_APP_ENV": "production"
+    }
+  },
+  "framework": "create-react-app",
+  "buildCommand": "npm run build",
+  "outputDirectory": "build"
+}
