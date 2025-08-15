@@ -8,13 +8,20 @@ import jwt
 import hashlib
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from typing import Optional
+# ✅ Python 3.12 - Removed typing imports (using built-in generics and | operator)
 
 # Load environment variables
 load_dotenv()
 
+# ✅ Python 3.12 Type Aliases
+type UserRecord = dict[str, str | int | bool | None]
+type StoreRecord = dict[str, str | int | None] 
+type JWTPayload = dict[str, str | int | float]
+type SupabaseResponse[T] = dict[str, T | list[T] | None]
+type AuthData = dict[str, str | int]
+
 # Initialize Supabase client
-supabase: Optional[Client] = None
+supabase: Client | None = None
 try:
     supabase_url = os.getenv("SUPABASE_URL")
     supabase_key = os.getenv("SUPABASE_KEY")
@@ -67,28 +74,67 @@ JWT_SECRET = os.getenv("JWT_SECRET_KEY", "dropux_jwt_super_secret_key_2024_v2_pr
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 def hash_password(password: str) -> str:
-    """Hash password using SHA256"""
+    """Hash password using SHA256.
+    
+    Args:
+        password: Plain text password to hash
+        
+    Returns:
+        Hexadecimal hash string
+    """
     return hashlib.sha256(password.encode()).hexdigest()
 
 def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
+    """Verify password against hash.
+    
+    Args:
+        password: Plain text password
+        hashed: Stored hash to compare against
+        
+    Returns:
+        True if password matches hash
+    """
     return hash_password(password) == hashed
 
-def create_jwt_token(user_data: dict) -> str:
-    """Create JWT token for user"""
-    payload = {
+def create_jwt_token(user_data: UserRecord) -> str:
+    """Create JWT token for authenticated user.
+    
+    Args:
+        user_data: User record from database
+        
+    Returns:
+        Encoded JWT token string
+        
+    Raises:
+        KeyError: If user_data missing required fields
+    """
+    payload: JWTPayload = {
         "user_id": user_data["id"],
         "email": user_data["email"],
         "role": user_data["role"],
         "company_id": user_data["company_id"],
-        "exp": datetime.utcnow() + timedelta(hours=24)
+        "exp": datetime.utcnow().timestamp() + 86400  # 24 hours
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify JWT token and return user data"""
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> AuthData:
+    """Verify JWT token and return user data.
+    
+    Args:
+        credentials: Bearer token from Authorization header
+        
+    Returns:
+        Decoded token payload with user data
+        
+    Raises:
+        HTTPException: 401 if token expired or invalid
+    """
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload: AuthData = jwt.decode(
+            credentials.credentials, 
+            JWT_SECRET, 
+            algorithms=[JWT_ALGORITHM]
+        )
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
@@ -103,7 +149,7 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str
-    user: dict
+    user: dict[str, str | int]
 
 class MLStoreSetup(BaseModel):
     site_id: str  # MLC, MLA, etc.
@@ -131,10 +177,12 @@ class HealthCheck(BaseModel):
     environment: str
 
 @app.get("/", response_model=APIInfo)
-def read_root():
+def read_root() -> APIInfo:
     """
-    API Information endpoint
-    Returns basic information about the DROPUX API
+    API Information endpoint.
+    
+    Returns:
+        Basic information about the DROPUX API
     """
     return APIInfo(
         message="DROPUX API v2.0",
@@ -145,10 +193,15 @@ def read_root():
     )
 
 @app.get("/health", response_model=HealthCheck)
-def health_check():
+def health_check() -> HealthCheck:
     """
-    Health Check endpoint for monitoring
-    Used by Railway and other monitoring services
+    Health Check endpoint for monitoring.
+    
+    Returns:
+        Health status information for monitoring services
+        
+    Note:
+        Used by Railway and other monitoring services
     """
     return HealthCheck(
         status="healthy",
@@ -158,8 +211,18 @@ def health_check():
     )
 
 @app.post("/auth/login", response_model=LoginResponse)
-def login(request: LoginRequest):
-    """Login endpoint - authenticate user and return JWT token"""
+def login(request: LoginRequest) -> LoginResponse:
+    """Login endpoint - authenticate user and return JWT token.
+    
+    Args:
+        request: Login credentials (email and password)
+        
+    Returns:
+        JWT token and user information
+        
+    Raises:
+        HTTPException: 401 if credentials invalid, 503 if database unavailable
+    """
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not available")
     
@@ -170,17 +233,17 @@ def login(request: LoginRequest):
         if not response.data:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
-        user = response.data[0]
+        user: UserRecord = response.data[0]
         
         # Verify password
-        if not verify_password(request.password, user['password_hash']):
+        if not verify_password(request.password, str(user['password_hash'])):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Create JWT token
-        token = create_jwt_token(user)
+        token: str = create_jwt_token(user)
         
         # Remove sensitive data from user object
-        safe_user = {
+        safe_user: dict[str, str | int] = {
             "id": user["id"],
             "email": user["email"],
             "role": user["role"],
@@ -200,16 +263,37 @@ def login(request: LoginRequest):
         raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
 
 @app.get("/auth/me")
-def get_current_user(current_user: dict = Depends(verify_token)):
-    """Get current authenticated user information"""
+def get_current_user(current_user: AuthData = Depends(verify_token)) -> dict[str, str | AuthData]:
+    """Get current authenticated user information.
+    
+    Args:
+        current_user: JWT verified user data
+        
+    Returns:
+        Current user information and token validation status
+    """
     return {
         "user": current_user,
         "message": "Token valid"
     }
 
 @app.post("/api/ml/stores/setup", response_model=MLStoreResponse)
-def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_token)):
-    """Setup a new MercadoLibre store for the authenticated user"""
+def setup_ml_store(
+    request: MLStoreSetup, 
+    current_user: AuthData = Depends(verify_token)
+) -> MLStoreResponse:
+    """Setup a new MercadoLibre store for the authenticated user.
+    
+    Args:
+        request: ML store configuration data
+        current_user: JWT verified user data
+        
+    Returns:
+        Store creation response with OAuth URL
+        
+    Raises:
+        HTTPException: 503 if database unavailable, 500 if creation fails
+    """
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not available")
     
@@ -218,7 +302,7 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
         redirect_uri = f"https://sales.dropux.co/api/ml/callback"
         
         # Insert store configuration into ml_accounts table (using only existing fields)
-        store_data = {
+        store_data: dict[str, str | int] = {
             "user_id": current_user["user_id"],
             "company_id": current_user["company_id"],
             "site_id": request.site_id,
@@ -227,16 +311,22 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
             # We'll store this info in a comment or separate approach
         }
         
-        response = supabase.table('ml_accounts').insert(store_data).execute()
+        response: SupabaseResponse[list[StoreRecord]] = (
+            supabase.table('ml_accounts')
+            .insert(store_data)
+            .execute()
+        )
         
         if not response.data:
             raise HTTPException(status_code=500, detail="Failed to create store")
         
-        store_id = response.data[0]["id"]
+        store_id: int = response.data[0]["id"]
         
         # Generate MercadoLibre OAuth URL (using provided app_id)
-        auth_url = f"https://auth.mercadolibre.com.{request.site_id.lower()}/authorization?" + \
-                   f"response_type=code&client_id={request.app_id}&redirect_uri={redirect_uri}&state={store_id}"
+        auth_url: str = (
+            f"https://auth.mercadolibre.com.{request.site_id.lower()}/authorization?"
+            f"response_type=code&client_id={request.app_id}&redirect_uri={redirect_uri}&state={store_id}"
+        )
         
         return MLStoreResponse(
             store_id=store_id,
@@ -251,18 +341,35 @@ def setup_ml_store(request: MLStoreSetup, current_user: dict = Depends(verify_to
         raise HTTPException(status_code=500, detail=f"Setup error: {str(e)}")
 
 @app.get("/api/ml/stores")
-def get_user_stores(current_user: dict = Depends(verify_token)):
-    """Get all MercadoLibre stores for the authenticated user"""
+def get_user_stores(current_user: AuthData = Depends(verify_token)) -> dict[str, list[dict[str, str | int | None]] | int]:
+    """Get all MercadoLibre stores for the authenticated user.
+    
+    Args:
+        current_user: JWT verified user data
+        
+    Returns:
+        Dictionary with stores list and count
+        
+    Raises:
+        HTTPException: 503 if database unavailable, 500 if fetch fails
+    """
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not available")
     
     try:
-        response = supabase.table('ml_accounts').select("*").eq('user_id', current_user["user_id"]).execute()
+        response: SupabaseResponse[list[StoreRecord]] = (
+            supabase.table('ml_accounts')
+            .select("*")
+            .eq('user_id', current_user["user_id"])
+            .execute()
+        )
         
         # Remove sensitive data (app_secret) from response
-        stores = []
-        for store in response.data:
-            safe_store = {k: v for k, v in store.items() if k != 'app_secret'}
+        stores: list[dict[str, str | int | None]] = []
+        for store in response.data or []:
+            safe_store: dict[str, str | int | None] = {
+                k: v for k, v in store.items() if k != 'app_secret'
+            }
             stores.append(safe_store)
         
         return {
@@ -274,23 +381,39 @@ def get_user_stores(current_user: dict = Depends(verify_token)):
         raise HTTPException(status_code=500, detail=f"Error fetching stores: {str(e)}")
 
 @app.get("/api/ml/callback")
-def ml_oauth_callback(code: str, state: str):
-    """Handle MercadoLibre OAuth callback"""
+def ml_oauth_callback(code: str, state: str) -> dict[str, str]:
+    """Handle MercadoLibre OAuth callback.
+    
+    Args:
+        code: Authorization code from ML
+        state: Store ID for callback tracking
+        
+    Returns:
+        Connection status and store information
+        
+    Raises:
+        HTTPException: 503 if database unavailable, 404 if store not found
+    """
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not available")
     
     try:
         # Get store configuration
-        store_response = supabase.table('ml_accounts').select("*").eq('id', state).execute()
+        store_response: SupabaseResponse[list[StoreRecord]] = (
+            supabase.table('ml_accounts')
+            .select("*")
+            .eq('id', state)
+            .execute()
+        )
         
         if not store_response.data:
             raise HTTPException(status_code=404, detail="Store not found")
         
-        store = store_response.data[0]
+        store: StoreRecord = store_response.data[0]
         
         # Exchange code for access token (simplified for now)
         # In production, you would make a request to ML token endpoint
-        update_data = {
+        update_data: dict[str, str] = {
             "status": "connected",
             "auth_code": code,
             "connected_at": datetime.now().isoformat()
@@ -310,8 +433,12 @@ def ml_oauth_callback(code: str, state: str):
         raise HTTPException(status_code=500, detail=f"Callback error: {str(e)}")
 
 @app.get("/test")
-def test_endpoint():
-    """Test endpoint for development purposes"""
+def test_endpoint() -> dict[str, str | list[str]]:
+    """Test endpoint for development purposes.
+    
+    Returns:
+        Test status and environment information
+    """
     return {
         "message": "Test successful", 
         "environment": os.getenv("APP_ENV", "development"),
@@ -321,8 +448,12 @@ def test_endpoint():
 
 # ==================== UTILITY ENDPOINTS ====================
 @app.get("/env-check")
-def environment_check():
-    """Check which environment variables are set (for debugging)"""
+def environment_check() -> dict[str, str | dict[str, bool] | dict[str, str | None]]:
+    """Check which environment variables are set (for debugging).
+    
+    Returns:
+        Environment status and variable detection information
+    """
     return {
         "environment": os.getenv("APP_ENV", "NOT_SET"),
         "variables_detected": {
