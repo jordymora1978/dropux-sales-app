@@ -38,11 +38,11 @@ try:
             supabase_url = 'https://' + supabase_url.replace('https://', '')
         
         supabase = create_client(supabase_url, supabase_key)
-        print(f"✅ Supabase connected successfully to {supabase_url}")
+        print(f"SUCCESS: Supabase connected successfully to {supabase_url}")
     else:
-        print("⚠️ Supabase credentials not found")
+        print("WARNING: Supabase credentials not found")
 except Exception as e:
-    print(f"❌ Supabase connection error: {e}")
+    print(f"ERROR: Supabase connection error: {e}")
     supabase = None
 
 app = FastAPI(
@@ -57,11 +57,11 @@ app = FastAPI(
 try:
     from ml_endpoints import router as ml_router
     app.include_router(ml_router)
-    print("✅ MercadoLibre endpoints loaded successfully")
+    print("SUCCESS: MercadoLibre endpoints loaded successfully")
 except ImportError as e:
-    print(f"⚠️ MercadoLibre endpoints not available: {e}")
+    print(f"WARNING: MercadoLibre endpoints not available: {e}")
 except Exception as e:
-    print(f"❌ Error loading ML endpoints: {e}")
+    print(f"ERROR: Error loading ML endpoints: {e}")
 
 # CORS middleware - production ready
 app_env = os.getenv("APP_ENV", "development")

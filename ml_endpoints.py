@@ -33,9 +33,9 @@ class MLStoreConnection(BaseModel):
     
     @validator('site_id')
     def validate_site_id(cls, v):
-        valid_sites = ['MLA', 'MLB', 'MCO', 'MCR', 'MEC', 'MLC', 'MLM', 'MLU', 'MLV', 'MPA', 'MPE', 'MPT', 'MRD']
+        valid_sites = ['MCO', 'MLC', 'MPE']  # Colombia, Chile, Perú - Dropux focus markets
         if v not in valid_sites:
-            raise ValueError(f'Invalid site_id. Must be one of: {", ".join(valid_sites)}')
+            raise ValueError(f'Invalid site_id. Must be one of: {", ".join(valid_sites)} (Colombia, Chile, Perú)')
         return v
     
     @validator('app_id')
@@ -67,26 +67,27 @@ class MLStoreInfo(BaseModel):
 
 @router.get("/sites")
 async def get_available_sites() -> dict:
-    """Get list of available MercadoLibre sites/countries."""
+    """Get list of available MercadoLibre sites/countries - DROPUX Focus: Colombia, Chile, Perú."""
     sites = []
     for site_id, info in ml_oauth_service.ML_SITES.items():
         sites.append({
             "site_id": site_id,
             "country": info['name'],
             "domain": f"mercadolibre.{info['domain']}",
-            "flag": "🇦🇷" if site_id == "MLA" else 
-                   "🇧🇷" if site_id == "MLB" else
-                   "🇨🇴" if site_id == "MCO" else
-                   "🇨🇱" if site_id == "MLC" else
-                   "🇲🇽" if site_id == "MLM" else
-                   "🇵🇪" if site_id == "MPE" else
-                   "🇺🇾" if site_id == "MLU" else
-                   "🌎"
+            "flag": info['flag'],
+            "currency": info.get('currency', 'USD'),
+            "is_active": True,
+            "order": 1 if site_id == "MCO" else 2 if site_id == "MLC" else 3  # Colombia first, then Chile, then Peru
         })
+    
+    # Sort by order (Colombia, Chile, Peru)
+    sites.sort(key=lambda x: x['order'])
     
     return {
         "sites": sites,
-        "total": len(sites)
+        "total": len(sites),
+        "focus_markets": ["Colombia", "Chile", "Perú"],
+        "note": "Dropux se enfoca en los principales mercados de América Latina"
     }
 
 @router.post("/connect-store", response_model=MLStoreResponse)

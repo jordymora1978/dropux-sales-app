@@ -22,21 +22,11 @@ type StoreConfig = dict[str, str | int | None]
 class MLOAuthService:
     """Professional MercadoLibre OAuth service with security best practices."""
     
-    # ML OAuth endpoints by country
+    # ML OAuth endpoints by country - DROPUX FOCUS: Colombia, Chile, Perú
     ML_SITES = {
-        'MLA': {'name': 'Argentina', 'domain': 'com.ar'},
-        'MLB': {'name': 'Brasil', 'domain': 'com.br'},
-        'MCO': {'name': 'Colombia', 'domain': 'com.co'},
-        'MCR': {'name': 'Costa Rica', 'domain': 'co.cr'},
-        'MEC': {'name': 'Ecuador', 'domain': 'com.ec'},
-        'MLC': {'name': 'Chile', 'domain': 'cl'},
-        'MLM': {'name': 'México', 'domain': 'com.mx'},
-        'MLU': {'name': 'Uruguay', 'domain': 'com.uy'},
-        'MLV': {'name': 'Venezuela', 'domain': 'com.ve'},
-        'MPA': {'name': 'Panamá', 'domain': 'com.pa'},
-        'MPE': {'name': 'Perú', 'domain': 'com.pe'},
-        'MPT': {'name': 'Portugal', 'domain': 'pt'},
-        'MRD': {'name': 'Dominicana', 'domain': 'com.do'}
+        'MCO': {'name': 'Colombia', 'domain': 'com.co', 'flag': '🇨🇴', 'currency': 'COP'},
+        'MLC': {'name': 'Chile', 'domain': 'cl', 'flag': '🇨🇱', 'currency': 'CLP'},  
+        'MPE': {'name': 'Perú', 'domain': 'com.pe', 'flag': '🇵🇪', 'currency': 'PEN'}
     }
     
     def __init__(self, encryption_key: Optional[str] = None):
