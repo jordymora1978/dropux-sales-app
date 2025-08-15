@@ -20,8 +20,21 @@ class ApiService {
       config.headers.Authorization = `Bearer ${this.token}`;
     }
 
+    console.log('🚀 API Request:', {
+      url,
+      method: config.method || 'GET',
+      headers: config.headers,
+      body: config.body
+    });
+
     try {
       const response = await fetch(url, config);
+      
+      console.log('📡 Response Status:', response.status);
+      console.log('📡 Response Headers:', response.headers);
+      
+      const responseText = await response.text();
+      console.log('📡 Response Body:', responseText);
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -29,12 +42,25 @@ class ApiService {
           this.logout();
           throw new Error('Session expired');
         }
-        throw new Error(`API Error: ${response.status}`);
+        
+        // Try to parse error message
+        try {
+          const errorData = JSON.parse(responseText);
+          throw new Error(errorData.detail || `API Error: ${response.status}`);
+        } catch {
+          throw new Error(`API Error: ${response.status} - ${responseText}`);
+        }
       }
 
-      return await response.json();
+      // Parse JSON response
+      try {
+        return JSON.parse(responseText);
+      } catch {
+        console.error('Failed to parse JSON:', responseText);
+        throw new Error('Invalid JSON response from server');
+      }
     } catch (error) {
-      console.error('API Request failed:', error);
+      console.error('❌ API Request failed:', error);
       throw error;
     }
   }

@@ -16,13 +16,25 @@ const Login = ({ onLoginSuccess }) => {
     setLoading(true);
     setError('');
 
+    console.log('🔑 Attempting login with:', formData.email);
+
     try {
       const response = await apiService.login(formData.email, formData.password);
-      console.log('Login successful:', response);
+      console.log('✅ Login successful:', response);
       onLoginSuccess(response);
     } catch (error) {
-      setError('Credenciales inválidas. Verifica tu email y contraseña.');
-      console.error('Login failed:', error);
+      console.error('❌ Login failed:', error.message);
+      
+      // Mostrar el error real del servidor o un mensaje genérico
+      if (error.message.includes('CORS')) {
+        setError('Error de conexión con el servidor. Por favor intenta más tarde.');
+      } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+        setError('No se puede conectar con el servidor. Verifica tu conexión.');
+      } else if (error.message.includes('401')) {
+        setError('Credenciales inválidas. Verifica tu email y contraseña.');
+      } else {
+        setError(error.message || 'Error al iniciar sesión. Por favor intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
