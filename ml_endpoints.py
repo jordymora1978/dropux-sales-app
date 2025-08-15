@@ -13,12 +13,51 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from backend.ml_oauth_service import ml_oauth_service, MLTokens
 from typing import Optional, List
 
-# Import auth dependencies from main
-from main import verify_token, supabase
+# Import dependencies - avoiding circular imports
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+from supabase import create_client
+import os
 
 # Type hints for Python 3.12+
 type AuthData = dict[str, str | int]
 type StoreData = dict[str, str | int | None]
+
+# Initialize dependencies locally to avoid circular import
+security = HTTPBearer()
+JWT_SECRET = os.getenv("JWT_SECRET_KEY", "dropux_jwt_super_secret_key_2024_v2_production")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+
+# Initialize Supabase client locally
+supabase = None
+try:
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
+    
+    if supabase_url and supabase_key:
+        supabase_url = supabase_url.replace('\n', '').replace(' ', '').strip()
+        supabase_key = supabase_key.replace('\n', '').replace(' ', '').strip()
+        
+        if not supabase_url.startswith('https://'):
+            supabase_url = 'https://' + supabase_url.replace('https://', '')
+        
+        supabase = create_client(supabase_url, supabase_key)
+except Exception:
+    supabase = None
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> AuthData:
+    """Verify JWT token and return user data."""
+    try:
+        payload: AuthData = jwt.decode(
+            credentials.credentials, 
+            JWT_SECRET, 
+            algorithms=[JWT_ALGORITHM]
+        )
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 router = APIRouter(prefix="/api/ml", tags=["MercadoLibre"])
 
