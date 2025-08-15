@@ -14,10 +14,12 @@ import os
 from cryptography.fernet import Fernet
 import base64
 
-# Type aliases for Python 3.12+
-type MLTokens = dict[str, str | int]
-type MLUserInfo = dict[str, Any]
-type StoreConfig = dict[str, str | int | None]
+# Type aliases compatible with Python 3.11+
+from typing import Dict, Any, Union
+
+MLTokens = Dict[str, Union[str, int]]
+MLUserInfo = Dict[str, Any]
+StoreConfig = Dict[str, Union[str, int, None]]
 
 class MLOAuthService:
     """Professional MercadoLibre OAuth service with security best practices."""
