@@ -466,7 +466,7 @@ def test_endpoint() -> dict[str, str | list[str]]:
         "message": "Test successful", 
         "environment": os.getenv("APP_ENV", "development"),
         "timestamp": datetime.now().isoformat(),
-        "cors_origins": cors_origins
+        "cors_origins": allowed_origins
     }
 
 # ==================== UTILITY ENDPOINTS ====================
