@@ -54,26 +54,28 @@ app = FastAPI(
 # CORS middleware - production ready
 app_env = os.getenv("APP_ENV", "development")
 
-# Siempre permitir los dominios de producción y desarrollo
+# Lista específica de orígenes permitidos (sin wildcards)
 allowed_origins = [
     "https://dropux.co",
     "https://sales.dropux.co",
     "https://www.dropux.co",
     "https://dropux-sales-app.vercel.app",
     "https://dropux-sales-app-git-master-jordys-projects-89bfd6b6.vercel.app",
-    "https://*.vercel.app",
+    "https://dropux-sales-qomek43nu-jordys-projects-89bfd6b6.vercel.app",
     "http://localhost:3000",
-    "http://localhost:3001"
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=["*"],
     expose_headers=["*"],
-    max_age=3600
+    max_age=86400
 )
 
 # ==================== AUTHENTICATION ====================
