@@ -57,7 +57,7 @@ app_env = os.getenv("APP_ENV", "development")
 # Lista específica de orígenes permitidos (sin wildcards)
 allowed_origins = [
     "https://dropux.co",
-    "https://sales.dropux.co",
+    "https://sales.dropux.co",  # Frontend principal en Vercel
     "https://www.dropux.co",
     "https://dropux-sales-app.vercel.app",
     "https://dropux-sales-app-git-master-jordys-projects-89bfd6b6.vercel.app",
