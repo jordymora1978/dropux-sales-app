@@ -81,17 +81,14 @@ app.add_middleware(
 )
 
 # ==================== CORS PREFLIGHT HANDLER ====================
-@app.options("/{full_path:path}")
-def handle_options(full_path: str):
-    """Handle CORS preflight requests for all endpoints.
+@app.options("/auth/login")
+def handle_login_options():
+    """Handle CORS preflight for login endpoint.
     
-    Args:
-        full_path: Any path for preflight requests
-        
     Returns:
-        Empty response with CORS headers
+        Empty response with CORS headers handled by middleware
     """
-    return {}
+    return {"status": "ok"}
 
 # ==================== AUTHENTICATION ====================
 security = HTTPBearer()
