@@ -72,8 +72,8 @@ allowed_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TEMPORARY: Allow all origins for debugging
-    allow_credentials=False,  # Must be False when allow_origins is ["*"]
+    allow_origins=allowed_origins,  # Professional: Specific origins only
+    allow_credentials=True,  # Secure: Allow credentials for JWT
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=["*"],
     expose_headers=["*"],
