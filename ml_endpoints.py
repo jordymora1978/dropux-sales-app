@@ -4,6 +4,7 @@ Handles multi-tenant ML store connections
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 import os
@@ -298,14 +299,109 @@ async def ml_oauth_callback(
         
         supabase.table('ml_accounts').update(update_data).eq('id', store['id']).execute()
         
-        # Return success with redirect to dashboard
-        return {
-            "status": "success",
-            "message": f"Store '{store['nickname']}' connected successfully!",
-            "store_id": store['id'],
-            "ml_user": user_info.get('nickname'),
-            "redirect_url": f"{os.getenv('FRONTEND_URL', 'https://sales.dropux.co')}/dashboard?connection=success"
-        }
+        # Return professional HTML success page with auto-redirect
+        frontend_url = os.getenv('FRONTEND_URL', 'https://sales.dropux.co')
+        success_html = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Conexión Exitosa - Dropux</title>
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                body {{ 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                }}
+                .container {{ 
+                    text-align: center;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
+                    padding: 40px;
+                    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+                    max-width: 500px;
+                    margin: 20px;
+                }}
+                .success-icon {{ 
+                    font-size: 64px;
+                    margin-bottom: 20px;
+                    animation: bounce 1s ease-in-out;
+                }}
+                .title {{ 
+                    font-size: 28px;
+                    font-weight: bold;
+                    margin-bottom: 16px;
+                }}
+                .message {{ 
+                    font-size: 16px;
+                    opacity: 0.9;
+                    margin-bottom: 8px;
+                }}
+                .store-info {{ 
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin: 20px 0;
+                    color: #FFD700;
+                }}
+                .redirect-info {{ 
+                    font-size: 14px;
+                    opacity: 0.7;
+                    margin-top: 30px;
+                }}
+                .spinner {{ 
+                    display: inline-block;
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    border-top-color: white;
+                    animation: spin 1s linear infinite;
+                    margin-right: 8px;
+                }}
+                @keyframes bounce {{
+                    0%, 20%, 50%, 80%, 100% {{ transform: translateY(0); }}
+                    40% {{ transform: translateY(-10px); }}
+                    60% {{ transform: translateY(-5px); }}
+                }}
+                @keyframes spin {{
+                    to {{ transform: rotate(360deg); }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="success-icon">🎉</div>
+                <div class="title">¡Conexión Exitosa!</div>
+                <div class="message">Tu tienda de MercadoLibre se conectó correctamente</div>
+                <div class="store-info">📱 {user_info.get('nickname', 'Tu tienda')} - Colombia 🇨🇴</div>
+                <div class="redirect-info">
+                    <div class="spinner"></div>
+                    Redirigiendo al dashboard...
+                </div>
+            </div>
+            <script>
+                // Auto redirect after 3 seconds
+                setTimeout(() => {{
+                    window.location.href = '{frontend_url}/dashboard?connection=success&store_id={store['id']}';
+                }}, 3000);
+                
+                // Also allow manual click
+                document.body.addEventListener('click', () => {{
+                    window.location.href = '{frontend_url}/dashboard?connection=success&store_id={store['id']}';
+                }});
+            </script>
+        </body>
+        </html>
+        """
+        
+        return HTMLResponse(content=success_html, status_code=200)
         
     except HTTPException:
         raise
