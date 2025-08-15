@@ -179,19 +179,19 @@ async def connect_ml_store(
         }
         
         # Check if store already exists for this user
-        existing = supabase.table('ml_stores').select("*").eq(
+        existing = supabase.table('ml_accounts').select("*").eq(
             'user_id', current_user["user_id"]
         ).eq('site_id', request.site_id).eq('app_id', request.app_id).execute()
         
         if existing.data:
             # Update existing store
-            response = supabase.table('ml_stores').update(store_data).eq(
+            response = supabase.table('ml_accounts').update(store_data).eq(
                 'id', existing.data[0]['id']
             ).execute()
             store_id = existing.data[0]['id']
         else:
             # Create new store
-            response = supabase.table('ml_stores').insert(store_data).execute()
+            response = supabase.table('ml_accounts').insert(store_data).execute()
             store_id = response.data[0]['id'] if response.data else None
         
         if not store_id:
@@ -255,7 +255,7 @@ async def ml_oauth_callback(
     
     try:
         # Find the store by state token
-        store_response = supabase.table('ml_stores').select("*").eq(
+        store_response = supabase.table('ml_accounts').select("*").eq(
             'state_token', state
         ).eq('status', 'pending_authorization').execute()
         
@@ -296,7 +296,7 @@ async def ml_oauth_callback(
             ).isoformat()
         }
         
-        supabase.table('ml_stores').update(update_data).eq('id', store['id']).execute()
+        supabase.table('ml_accounts').update(update_data).eq('id', store['id']).execute()
         
         # Return success with redirect to dashboard
         return {
@@ -322,7 +322,7 @@ async def get_my_stores(
         raise HTTPException(status_code=503, detail="Database not available")
     
     try:
-        response = supabase.table('ml_stores').select("*").eq(
+        response = supabase.table('ml_accounts').select("*").eq(
             'user_id', current_user["user_id"]
         ).execute()
         
@@ -358,7 +358,7 @@ async def refresh_store_token(
     
     try:
         # Get store and verify ownership
-        store_response = supabase.table('ml_stores').select("*").eq(
+        store_response = supabase.table('ml_accounts').select("*").eq(
             'id', store_id
         ).eq('user_id', current_user["user_id"]).execute()
         
@@ -391,7 +391,7 @@ async def refresh_store_token(
             ).isoformat()
         }
         
-        supabase.table('ml_stores').update(update_data).eq('id', store_id).execute()
+        supabase.table('ml_accounts').update(update_data).eq('id', store_id).execute()
         
         return {
             "status": "success",
@@ -416,7 +416,7 @@ async def disconnect_store(
     
     try:
         # Verify ownership
-        store_response = supabase.table('ml_stores').select("*").eq(
+        store_response = supabase.table('ml_accounts').select("*").eq(
             'id', store_id
         ).eq('user_id', current_user["user_id"]).execute()
         
@@ -431,7 +431,7 @@ async def disconnect_store(
             "disconnected_at": datetime.now().isoformat()
         }
         
-        supabase.table('ml_stores').update(update_data).eq('id', store_id).execute()
+        supabase.table('ml_accounts').update(update_data).eq('id', store_id).execute()
         
         return {
             "status": "success",
