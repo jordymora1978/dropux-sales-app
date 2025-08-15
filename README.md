@@ -50,6 +50,7 @@ DROPUX uses a microservices architecture:
 **DROPUX está completamente funcional en producción! 🎉**
 
 ### 🔗 URLs Principales
+- **Frontend App**: https://dropux-sales-app.vercel.app
 - **API Base**: https://sales.dropux.co
 - **Health Check**: https://sales.dropux.co/health
 - **API Documentation**: https://sales.dropux.co/docs
@@ -92,6 +93,7 @@ npm start
 
 ## 🚀 Deployment Status - COMPLETED ✅
 
+- ✅ **Frontend App**: Live on Vercel at https://dropux-sales-app.vercel.app
 - ✅ **Backend API**: Live on Railway with auto-deploy
 - ✅ **Domain**: sales.dropux.co with SSL certificate
 - ✅ **Database**: Supabase PostgreSQL connected
@@ -101,7 +103,8 @@ npm start
 - ✅ **Environment Variables**: Production configured
 
 ## 🎯 Next Phase
-- Frontend deployment (React → Vercel/Netlify)
+- Connect Frontend with Backend API (replace mockdata)
 - Complete ML OAuth flow
-- Order management dashboard
+- Implement real-time order management
 - Customer service AI integration
+- Configure custom domain (app.dropux.co)

@@ -1,2 +1,3 @@
-Force Railway rebuild: 2025-08-14 23:11
-This file forces Railway to rebuild with debugging changes for Supabase table access.
+Force Railway rebuild: 2025-08-15 Backend Deploy
+This file forces Railway to rebuild the backend application.
+Frontend is deployed separately on Vercel.
