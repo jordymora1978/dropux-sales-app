@@ -1,6 +1,5 @@
 // API Service for DROPUX Sales System
-// Temporalmente usando el dominio de Railway directamente hasta que se arregle el DNS
-const API_BASE = process.env.REACT_APP_API_URL || 'https://web-production-ae7da.up.railway.app';
+import { API_BASE } from '../config/api.config';
 
 class ApiService {
   constructor() {
