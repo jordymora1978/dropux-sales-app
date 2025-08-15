@@ -3,7 +3,31 @@ import { API_BASE } from '../config/api.config';
 
 class ApiService {
   constructor() {
-    this.token = localStorage.getItem('token');
+    this.initializeAuth();
+  }
+
+  initializeAuth() {
+    // Check if token exists and is valid
+    const storedToken = localStorage.getItem('token');
+    const storedExpiry = localStorage.getItem('token_expiry');
+    
+    if (storedToken && storedExpiry) {
+      const now = new Date();
+      const expiry = new Date(storedExpiry);
+      
+      // Check if token is expired
+      if (now >= expiry) {
+        console.log('🔒 Token expired, clearing auth');
+        this.logout();
+        return;
+      }
+      
+      // Token is valid, set it
+      this.token = storedToken;
+      console.log('✅ Auth restored from localStorage');
+    } else {
+      this.token = null;
+    }
   }
 
   async request(endpoint, options = {}) {
@@ -74,8 +98,17 @@ class ApiService {
 
     if (response.access_token) {
       this.token = response.access_token;
+      
+      // Set expiration to 23:59 of current day in user's timezone
+      const expiry = new Date();
+      expiry.setHours(23, 59, 59, 999); // Set to 23:59:59.999 today
+      
+      // Store token and expiry
       localStorage.setItem('token', this.token);
+      localStorage.setItem('token_expiry', expiry.toISOString());
       localStorage.setItem('user', JSON.stringify(response.user));
+      
+      console.log(`🔑 Token stored, expires at: ${expiry.toLocaleString()}`);
     }
 
     return response;
@@ -94,7 +127,9 @@ class ApiService {
   logout() {
     this.token = null;
     localStorage.removeItem('token');
+    localStorage.removeItem('token_expiry');
     localStorage.removeItem('user');
+    console.log('🚪 Logged out, auth cleared');
   }
 
   // ML Stores
@@ -120,7 +155,49 @@ class ApiService {
 
   // Utility
   isAuthenticated() {
-    return !!this.token;
+    // Always check if token is expired before returning true
+    if (!this.token) return false;
+    
+    const storedExpiry = localStorage.getItem('token_expiry');
+    if (!storedExpiry) return false;
+    
+    const now = new Date();
+    const expiry = new Date(storedExpiry);
+    
+    if (now >= expiry) {
+      console.log('🔒 Token expired during check');
+      this.logout();
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Check token expiration and auto-logout if needed
+  checkTokenExpiration() {
+    const storedExpiry = localStorage.getItem('token_expiry');
+    if (!storedExpiry || !this.token) return false;
+    
+    const now = new Date();
+    const expiry = new Date(storedExpiry);
+    
+    if (now >= expiry) {
+      console.log('🔒 Auto-logout: Token expired');
+      this.logout();
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Start periodic token validation
+  startTokenValidation() {
+    // Check every 30 seconds
+    setInterval(() => {
+      if (this.token) {
+        this.checkTokenExpiration();
+      }
+    }, 30000);
   }
 
   getUser() {
@@ -133,4 +210,8 @@ class ApiService {
 }
 
 const apiServiceInstance = new ApiService();
+
+// Start token validation when service is initialized
+apiServiceInstance.startTokenValidation();
+
 export default apiServiceInstance;

@@ -33,6 +33,16 @@ const ConnectMLStore = ({ onClose, onSuccess }) => {
   const [redirectUri, setRedirectUri] = useState('');
   const [copied, setCopied] = useState(false);
   const [instructions, setInstructions] = useState([]);
+  
+  // Popup cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      // Clean up popup if component unmounts
+      if (window.mlAuthPopup && !window.mlAuthPopup.closed) {
+        window.mlAuthPopup.close();
+      }
+    };
+  }, []);
 
   // Load available ML sites
   useEffect(() => {
@@ -128,25 +138,89 @@ const ConnectMLStore = ({ onClose, onSuccess }) => {
   // Open ML authorization in new window
   const openMLAuth = () => {
     setStep(3);
+    setError('');
+    
+    // Close any existing popup
+    if (window.mlAuthPopup && !window.mlAuthPopup.closed) {
+      window.mlAuthPopup.close();
+    }
+    
+    // Open popup with specific features
     const authWindow = window.open(
       authUrl,
       'ml_auth',
-      'width=600,height=700,scrollbars=yes,resizable=yes'
+      'width=600,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no'
     );
     
-    // Listen for successful connection
+    // Store reference globally
+    window.mlAuthPopup = authWindow;
+    
+    // Listen for messages from popup
+    const handleMessage = (event) => {
+      // Verify origin for security
+      const allowedOrigins = [
+        'https://api.dropux.co',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000'
+      ];
+      
+      if (!allowedOrigins.includes(event.origin)) {
+        console.log('❌ Message from unauthorized origin:', event.origin);
+        return;
+      }
+      
+      if (event.data.type === 'ML_CONNECTION_SUCCESS') {
+        console.log('✅ ML Connection successful:', event.data);
+        
+        // Close popup
+        if (authWindow && !authWindow.closed) {
+          authWindow.close();
+        }
+        
+        // Clean up
+        window.removeEventListener('message', handleMessage);
+        
+        // Notify parent component
+        if (onSuccess) {
+          onSuccess();
+        }
+        
+        // Close modal
+        onClose();
+      } else if (event.data.type === 'ML_CONNECTION_ERROR') {
+        console.log('❌ ML Connection error:', event.data);
+        setError(event.data.message || 'Error en la conexión con MercadoLibre');
+        setStep(2); // Go back to instructions
+        
+        // Close popup
+        if (authWindow && !authWindow.closed) {
+          authWindow.close();
+        }
+        
+        // Clean up
+        window.removeEventListener('message', handleMessage);
+      }
+    };
+    
+    // Add message listener
+    window.addEventListener('message', handleMessage);
+    
+    // Fallback: Check if popup was closed manually
     const checkClosed = setInterval(() => {
       if (authWindow.closed) {
         clearInterval(checkClosed);
-        // Check if connection was successful
+        window.removeEventListener('message', handleMessage);
+        
+        // If closed manually without success message, go back to instructions
         setTimeout(() => {
-          if (onSuccess) {
-            onSuccess();
-          }
-          onClose();
-        }, 1000);
+          setStep(2);
+          setError('Conexión cancelada. Intenta de nuevo si no completaste la autorización.');
+        }, 500);
       }
     }, 1000);
+    
+    // Focus on popup
+    authWindow.focus();
   };
 
   // Get site info by ID
@@ -166,7 +240,13 @@ const ConnectMLStore = ({ onClose, onSuccess }) => {
             <h2>Conectar Tienda MercadoLibre</h2>
             <p>Conecta tu tienda de MercadoLibre para gestionar órdenes y productos</p>
           </div>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={() => {
+            // Clean up popup before closing
+            if (window.mlAuthPopup && !window.mlAuthPopup.closed) {
+              window.mlAuthPopup.close();
+            }
+            onClose();
+          }}>×</button>
         </div>
 
         {/* Content based on step */}
@@ -387,8 +467,17 @@ const ConnectMLStore = ({ onClose, onSuccess }) => {
                 <h3>Conectando con MercadoLibre</h3>
                 <p>
                   Se abrió una ventana para autorizar la conexión. <br/>
-                  Autoriza el acceso y esta ventana se cerrará automáticamente.
+                  <strong>Autoriza el acceso en la ventana emergente</strong> y esta ventana se cerrará automáticamente.
                 </p>
+                
+                {/* Error Display */}
+                {error && (
+                  <div className="error-message">
+                    <AlertCircle size={16} />
+                    {error}
+                  </div>
+                )}
+                
                 <div className="connecting-info">
                   <div className="info-item">
                     <span className="info-label">País:</span>
@@ -400,6 +489,32 @@ const ConnectMLStore = ({ onClose, onSuccess }) => {
                     <span className="info-label">Tienda:</span>
                     <span className="info-value">{formData.store_name}</span>
                   </div>
+                </div>
+                
+                {/* Cancel Button */}
+                <div className="action-buttons">
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      // Close popup and go back
+                      if (window.mlAuthPopup && !window.mlAuthPopup.closed) {
+                        window.mlAuthPopup.close();
+                      }
+                      setStep(2);
+                      setError('');
+                    }}
+                    className="back-btn"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={openMLAuth}
+                    className="connect-btn secondary"
+                  >
+                    <ExternalLink size={16} />
+                    Abrir Ventana de Nuevo
+                  </button>
                 </div>
               </div>
             </>

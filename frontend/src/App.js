@@ -74,6 +74,28 @@ const SalesDashboard = () => {
     loadMLStores(); // Reload stores
   };
 
+  // Delete ML store
+  const deleteMLStore = async (storeId, storeName) => {
+    if (!confirm(`¿Estás seguro de que quieres eliminar la tienda "${storeName}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      await apiService.request(`/api/ml/stores/${storeId}`, {
+        method: 'DELETE'
+      });
+      
+      // Reload stores after deletion
+      loadMLStores();
+      
+      // Show success message (optional)
+      alert('Tienda eliminada correctamente');
+    } catch (error) {
+      console.error('Error deleting store:', error);
+      alert('Error al eliminar la tienda. Inténtalo de nuevo.');
+    }
+  };
+
   // Load stores when authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -765,14 +787,30 @@ const SalesDashboard = () => {
                             <button className="store-action-btn secondary">
                               Configurar
                             </button>
+                            <button 
+                              className="store-action-btn danger"
+                              onClick={() => deleteMLStore(store.id, store.store_name)}
+                              title="Eliminar tienda"
+                            >
+                              Eliminar
+                            </button>
                           </>
                         ) : (
-                          <button 
-                            className="store-action-btn primary"
-                            onClick={() => setShowConnectML(true)}
-                          >
-                            Reconectar
-                          </button>
+                          <>
+                            <button 
+                              className="store-action-btn primary"
+                              onClick={() => setShowConnectML(true)}
+                            >
+                              Reconectar
+                            </button>
+                            <button 
+                              className="store-action-btn danger"
+                              onClick={() => deleteMLStore(store.id, store.store_name)}
+                              title="Eliminar tienda"
+                            >
+                              Eliminar
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>

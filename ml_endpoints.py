@@ -526,7 +526,6 @@ async def delete_store(
 ) -> dict:
     """Completely delete a ML store from user's account."""
     
-    supabase = get_supabase()
     if not supabase:
         raise HTTPException(status_code=503, detail="Database not available")
     

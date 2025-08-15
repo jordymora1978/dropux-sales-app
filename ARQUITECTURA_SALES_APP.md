@@ -77,25 +77,47 @@ Authorization: Bearer {token}
 # Verifica token y retorna datos del usuario
 ```
 
-### 🏪 MercadoLibre Multi-Tenant Stores
+### 🏪 MercadoLibre Multi-Tenant Stores - ✅ PROFESIONAL
 ```http
-POST https://sales.dropux.co/api/ml/stores/setup
+# Listar países disponibles (Colombia, Chile, Perú)
+GET https://api.dropux.co/api/ml/sites
+# Respuesta: Lista de países con flags y currencies
+
+# Conectar nueva tienda ML
+POST https://api.dropux.co/api/ml/connect-store
 Authorization: Bearer {token}
 Content-Type: application/json
 {
-  "site_id": "MLC",
-  "app_id": "tu_app_id",
-  "app_secret": "tu_app_secret", 
-  "store_name": "Nombre Tienda"
+  "site_id": "MCO",  // Colombia, MLC (Chile), MPE (Perú)
+  "app_id": "6996757760934434",
+  "app_secret": "tu_app_secret_encriptado", 
+  "store_name": "Todoencargo-co"
 }
-# Crea nueva tienda ML para el usuario autenticado
+# Genera OAuth URL y redirect URI para autorización
 
-GET https://sales.dropux.co/api/ml/stores
+# Listar mis tiendas conectadas
+GET https://api.dropux.co/api/ml/my-stores
 Authorization: Bearer {token}
-# Lista todas las tiendas ML del usuario
+# Lista todas las tiendas ML del usuario con status
 
-GET https://sales.dropux.co/api/ml/callback?code={code}&state={store_id}
-# OAuth callback de MercadoLibre
+# OAuth callback (maneja automáticamente)
+GET https://api.dropux.co/api/ml/callback/{callback_id}?code={code}&state={state}
+# Exchange code por tokens y conecta tienda
+
+# Refrescar token de una tienda
+POST https://api.dropux.co/api/ml/refresh-token/{store_id}
+Authorization: Bearer {token}
+# Renueva access_token usando refresh_token
+
+# Eliminar tienda completamente
+DELETE https://api.dropux.co/api/ml/stores/{store_id}
+Authorization: Bearer {token}
+# Elimina tienda y todos sus datos
+
+# Desconectar tienda (mantiene config)
+DELETE https://api.dropux.co/api/ml/disconnect/{store_id}
+Authorization: Bearer {token}
+# Solo remueve tokens, mantiene configuración
 ```
 
 ### 🔧 Utilidades y Debug
@@ -146,8 +168,10 @@ created_at      TIMESTAMP DEFAULT NOW()
 updated_at      TIMESTAMP
 ```
 
-**Tiendas creadas:**
-- ID: 14, Todoencargo (MLC) - Usuario admin
+**Tiendas conectadas (15 Agosto 2025):**
+- ID: 15, Todoencargo-co (MCO - Colombia) - Usuario admin
+- App ID: 6996757760934434
+- Status: Conectada y operativa
 
 ## 🚀 PROCESO DE INICIO
 
@@ -231,21 +255,39 @@ RAILWAY_PROJECT_ID=37206a97-c2a7-4238-a864-8e611637e7cb
 - ✅ **1 tienda ML configurada** (Todoencargo - Chile)
 - ✅ **Sistema de roles** implementado y funcional
 
-### 🚀 **PRÓXIMA FASE 3 - INTEGRACIÓN MERCADOLIBRE (0% - PENDIENTE)**
+### 🚀 **FASE 3 - INTEGRACIÓN MERCADOLIBRE (95% COMPLETADA)** 🎉
 
-#### 🔄 **Prioridad Inmediata:**
-1. **Completar OAuth MercadoLibre**
-   - ✅ Setup inicial de tiendas (HECHO)
-   - ❌ Callback endpoint funcional 
-   - ❌ Exchange code por access_token
-   - ❌ Refresh tokens automático
-   - ❌ Manejo de expiración
+#### ✅ **COMPLETADO HOY - 15 AGOSTO 2025:**
+1. **OAuth MercadoLibre Profesional**
+   - ✅ Setup inicial de tiendas multi-tenant
+   - ✅ Callback endpoint con HTML profesional
+   - ✅ Exchange code por access_token exitoso
+   - ✅ Refresh tokens automático implementado
+   - ✅ Manejo de expiración de tokens
+   - ✅ Encriptación de secrets con Fernet
+   - ✅ CSRF protection con state tokens
+   - ✅ Primera tienda conectada: Todoencargo-co (Colombia)
 
-2. **Sistema de Órdenes Real**
+2. **UX Profesional de Conexión ML**
+   - ✅ Control único de popup (sin ventanas múltiples)
+   - ✅ Comunicación window.postMessage segura
+   - ✅ Auto-cierre de popup tras autorización
+   - ✅ Feedback visual claro durante conexión
+   - ✅ Botón eliminar tiendas implementado
+   - ✅ Cleanup automático de recursos
+
+3. **JWT Session Management Mejorado**
+   - ✅ Persistencia de token al refrescar página
+   - ✅ Expiración automática a las 23:59 (hora local)
+   - ✅ Validación periódica cada 30 segundos
+   - ✅ Auto-logout cuando expira el token
+   - ✅ Restauración automática al recargar
+
+#### ⏳ **Pendiente - Sistema de Órdenes Real:**
    - ❌ Endpoints CRUD para órdenes
-   - ❌ Sincronización con ML API
+   - ❌ Sincronización con ML API en tiempo real
    - ❌ Reemplazar mockdata con datos reales
-   - ❌ Dashboard con métricas reales
+   - ❌ Dashboard con métricas de producción
 
 #### ⏳ Funcionalidades Avanzadas
 1. **Sistema de Webhooks ML**
@@ -346,8 +388,9 @@ curl -H "Authorization: Bearer {token}" https://sales.dropux.co/auth/me
 
 ---
 
-**📅 Última actualización:** 15 de Agosto, 2025  
-**📊 Estado:** 🟢 COMPLETAMENTE FUNCIONAL  
+**📅 Última actualización:** 15 de Agosto, 2025 - 8:30 PM  
+**📊 Estado:** 🟢 PRODUCCIÓN - 95% COMPLETADO  
+**🎯 Logros de hoy:** OAuth ML profesional, JWT persistente, UX mejorado, Primera tienda conectada  
 **🎯 Próximo objetivo:** Frontend deployment y OAuth completo  
 **👥 Usuarios activos:** 3  
 **🏪 Tiendas ML:** 1 (Todoencargo)  
