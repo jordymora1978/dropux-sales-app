@@ -764,9 +764,11 @@ def test_database():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8080))  # Changed default to match Railway expectation
     host = "0.0.0.0"
     
-    print(f"Iniciando DROPUX API en http://{host}:{port}")
-    print(f"Documentacion en http://{host}:{port}/docs")
+    print(f"🚀 Iniciando DROPUX API en http://{host}:{port}")
+    print(f"📚 Documentacion en http://{host}:{port}/docs")
+    print(f"🌍 Environment: {os.getenv('APP_ENV', 'development')}")
+    print(f"🔧 Using PORT: {port} (from env: {os.getenv('PORT', 'not set')})")
     uvicorn.run(app, host=host, port=port)
