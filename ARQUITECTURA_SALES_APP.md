@@ -67,7 +67,7 @@ C:\Users\jordy\proyectos\sales-system\
 POST https://sales.dropux.co/auth/login
 Content-Type: application/json
 {
-  "email": "admin@drapify.com",
+  "email": "admin@dropux.co",
   "password": "admin123"
 }
 # Respuesta: {"access_token": "eyJ...", "token_type": "bearer", "user": {...}}
@@ -127,9 +127,9 @@ created_at      TIMESTAMP DEFAULT NOW()
 ```
 
 **Usuarios existentes:**
-- admin@drapify.com (master_admin)
-- operador@drapify.com (operator) 
-- viewer@drapify.com (viewer)
+- admin@dropux.co (master_admin)
+- operador@dropux.co (operator) 
+- viewer@dropux.co (viewer)
 
 ### 🏪 Tiendas ML (ml_accounts) - ✅ FUNCIONAL
 ```sql

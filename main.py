@@ -410,6 +410,50 @@ def check_ml_accounts_structure(current_user: dict = Depends(verify_token)):
             "error": f"General error: {str(e)[:200]}"
         }
 
+@app.post("/admin/migrate-emails")
+def migrate_emails_to_dropux(current_user: dict = Depends(verify_token)):
+    """Migrate user emails from @drapify.com to @dropux.co - ADMIN ONLY"""
+    if current_user.get("role") != "master_admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        # Get all users with @drapify.com emails
+        response = supabase.table('users').select("*").like('email', '%@drapify.com').execute()
+        
+        if not response.data:
+            return {
+                "message": "No @drapify.com emails found to migrate",
+                "migrated": 0
+            }
+        
+        migrated_users = []
+        
+        for user in response.data:
+            old_email = user["email"]
+            new_email = old_email.replace("@drapify.com", "@dropux.co")
+            
+            # Update email in database
+            update_response = supabase.table('users').update({"email": new_email}).eq('id', user['id']).execute()
+            
+            if update_response.data:
+                migrated_users.append({
+                    "id": user["id"],
+                    "old_email": old_email,
+                    "new_email": new_email
+                })
+        
+        return {
+            "message": f"Successfully migrated {len(migrated_users)} emails to @dropux.co",
+            "migrated": len(migrated_users),
+            "users": migrated_users
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Migration error: {str(e)}")
+
 @app.post("/admin/setup-tables")
 def setup_database_tables(current_user: dict = Depends(verify_token)):
     """Setup required database tables - ADMIN ONLY"""

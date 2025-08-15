@@ -65,7 +65,7 @@ DROPUX uses a microservices architecture:
 - **OAuth Callback**: `GET /api/ml/callback`
 
 ### 📊 Current Status
-- ✅ **3 Users**: admin, operador, viewer
+- ✅ **3 Users**: admin@dropux.co, operador@dropux.co, viewer@dropux.co
 - ✅ **1 ML Store**: Todoencargo (Chile)
 - ✅ **JWT Auth**: Fully implemented
 - ✅ **Database**: Supabase PostgreSQL
