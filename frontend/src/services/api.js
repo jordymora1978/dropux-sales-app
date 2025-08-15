@@ -1,5 +1,5 @@
-// API Service for DROPUX Sales System
-const API_BASE = process.env.REACT_APP_API_URL || 'https://api.dropux.co';
+// API Service for DROPUX Sales System  
+const API_BASE = process.env.REACT_APP_API_URL || 'https://web-production-ae7da.up.railway.app';
 
 class ApiService {
   constructor() {
