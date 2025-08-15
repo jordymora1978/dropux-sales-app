@@ -80,6 +80,19 @@ app.add_middleware(
     max_age=86400
 )
 
+# ==================== CORS PREFLIGHT HANDLER ====================
+@app.options("/{full_path:path}")
+def handle_options(full_path: str):
+    """Handle CORS preflight requests for all endpoints.
+    
+    Args:
+        full_path: Any path for preflight requests
+        
+    Returns:
+        Empty response with CORS headers
+    """
+    return {}
+
 # ==================== AUTHENTICATION ====================
 security = HTTPBearer()
 
