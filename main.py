@@ -203,23 +203,24 @@ def read_root() -> APIInfo:
         environment=os.getenv("APP_ENV", "development")
     )
 
-@app.get("/health")
-def health_check() -> dict[str, str]:
-    """
-    Health Check endpoint for monitoring.
-    
-    Returns:
-        Health status information for monitoring services
-        
-    Note:
-        Used by Railway and other monitoring services
-    """
-    return {
-        "status": "healthy",
-        "service": "DROPUX API",
-        "timestamp": datetime.now().isoformat(),
-        "environment": os.getenv("APP_ENV", "development")
-    }
+# Temporarily disabled healthcheck endpoint for Railway deployment
+# @app.get("/health")
+# def health_check() -> dict[str, str]:
+#     """
+#     Health Check endpoint for monitoring.
+#     
+#     Returns:
+#         Health status information for monitoring services
+#         
+#     Note:
+#         Used by Railway and other monitoring services
+#     """
+#     return {
+#         "status": "healthy",
+#         "service": "DROPUX API",
+#         "timestamp": datetime.now().isoformat(),
+#         "environment": os.getenv("APP_ENV", "development")
+#     }
 
 @app.post("/auth/login", response_model=LoginResponse)
 def login(request: LoginRequest) -> LoginResponse:
