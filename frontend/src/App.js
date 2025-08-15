@@ -1,8 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Package, Truck, Eye, MessageSquare, ExternalLink, Sun, Moon, ShoppingCart, Users, Settings, BarChart3, X, Send, HelpCircle, MapPin, FileText, Clipboard, Edit3, Save } from 'lucide-react';
 import './App.css';
+import Login from './components/Login';
+import apiService from './services/api';
 
 const SalesDashboard = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      if (apiService.isAuthenticated()) {
+        const userData = await apiService.verifyToken();
+        setUser(userData);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoginSuccess = (response) => {
+    setUser(response.user);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    apiService.logout();
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
   const [theme, setTheme] = useState('light');
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -438,7 +485,22 @@ const SalesDashboard = () => {
             </button>
             <div className="user-info">
               <User size={16} />
-              Jordy Admin
+              {user?.email || 'Usuario'}
+              <button 
+                onClick={handleLogout}
+                style={{ 
+                  marginLeft: '10px', 
+                  padding: '4px 8px', 
+                  fontSize: '12px',
+                  background: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Salir
+              </button>
             </div>
           </div>
         </div>
