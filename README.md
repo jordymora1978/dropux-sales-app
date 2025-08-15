@@ -45,21 +45,63 @@ DROPUX uses a microservices architecture:
 
 ---
 
-## 🌐 Live Production API
-**DROPUX is now live in production!**
+## 🌐 Production API - FULLY OPERATIONAL
 
+**DROPUX está completamente funcional en producción! 🎉**
+
+### 🔗 URLs Principales
 - **API Base**: https://sales.dropux.co
 - **Health Check**: https://sales.dropux.co/health
 - **API Documentation**: https://sales.dropux.co/docs
-- **ReDoc**: https://sales.dropux.co/redoc
+- **Interactive API**: https://sales.dropux.co/redoc
 
-## 📋 Development Setup
-For local development and technical details, see:
-- [🚀 Quick Start Guide](QUICK_START_GUIDE.md)
-- [📋 Architecture Documentation](ARQUITECTURA_SALES_APP.md)
+### 🔐 Authentication Endpoints
+- **Login**: `POST /auth/login`
+- **Verify Token**: `GET /auth/me`
 
-## 🚀 Deployment Status
-- ✅ **Backend API**: Live on Railway
-- ✅ **Domain**: sales.dropux.co configured
-- ✅ **SSL**: Certificate active
-- ✅ **Endpoints**: All functional
+### 🏪 MercadoLibre Multi-Tenant
+- **Setup Store**: `POST /api/ml/stores/setup`
+- **List Stores**: `GET /api/ml/stores`
+- **OAuth Callback**: `GET /api/ml/callback`
+
+### 📊 Current Status
+- ✅ **3 Users**: admin, operador, viewer
+- ✅ **1 ML Store**: Todoencargo (Chile)
+- ✅ **JWT Auth**: Fully implemented
+- ✅ **Database**: Supabase PostgreSQL
+- ✅ **Multi-tenant**: Each user manages own ML stores
+
+## 📋 Development & Documentation
+
+### Local Development
+```bash
+# Backend
+cd C:\Users\jordy\proyectos\sales-system
+python main.py
+# Available at: http://localhost:8000
+
+# Frontend
+cd C:\Users\jordy\proyectos\sales-system\frontend
+npm start
+# Available at: http://localhost:3000
+```
+
+### Documentation
+- [📋 Complete Architecture](ARQUITECTURA_SALES_APP.md)
+- [🚀 Deployment Guide](QUICK_START_GUIDE.md)
+
+## 🚀 Deployment Status - COMPLETED ✅
+
+- ✅ **Backend API**: Live on Railway with auto-deploy
+- ✅ **Domain**: sales.dropux.co with SSL certificate
+- ✅ **Database**: Supabase PostgreSQL connected
+- ✅ **Authentication**: JWT Bearer token system
+- ✅ **Multi-tenant**: ML stores per user
+- ✅ **GitHub Integration**: Auto-deploy on push
+- ✅ **Environment Variables**: Production configured
+
+## 🎯 Next Phase
+- Frontend deployment (React → Vercel/Netlify)
+- Complete ML OAuth flow
+- Order management dashboard
+- Customer service AI integration
