@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Search, Filter, Bell, User, Package, DollarSign, Truck, TrendingUp, Eye, MessageSquare, ExternalLink, Calendar, Clock, Sun, Moon, Home, ShoppingCart, Users, Settings, BarChart3, X, Send, HelpCircle, MapPin, FileText, Clipboard, Edit3, Save } from 'lucide-react';
+import { User, Package, Truck, Eye, MessageSquare, ExternalLink, Sun, Moon, ShoppingCart, Users, Settings, BarChart3, X, Send, HelpCircle, MapPin, FileText, Clipboard, Edit3, Save } from 'lucide-react';
 import './App.css';
 
 const SalesDashboard = () => {
   const [theme, setTheme] = useState('light');
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1); // Comentado temporalmente
   const [activeTab, setActiveTab] = useState('orders');
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [modalTab, setModalTab] = useState('messages');
   const [messageInput, setMessageInput] = useState('');
   const [isEditingPublication, setIsEditingPublication] = useState(false);
-  const [publicationData, setPublicationData] = useState({});
+  // const [publicationData, setPublicationData] = useState({}); // Comentado temporalmente
 
   // Datos de ejemplo para el dashboard
   const mockOrders = [
