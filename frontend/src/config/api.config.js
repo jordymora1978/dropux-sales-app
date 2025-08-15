@@ -4,8 +4,8 @@
 const API_URLS = {
   // Production backends (in order of preference)
   production: [
-    'https://web-production-ae7da.up.railway.app',  // Railway actual domain
-    'https://api.dropux.co',                        // Custom domain (when DNS is fixed)
+    'https://api.dropux.co',                        // Custom domain (DNS fixed!)
+    'https://web-production-ae7da.up.railway.app',  // Railway backup domain
   ],
   // Development backends
   development: [
