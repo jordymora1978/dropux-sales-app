@@ -442,3 +442,40 @@ async def disconnect_store(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Disconnect error: {str(e)}")
+
+# ==================== WEBHOOKS ====================
+
+@router.post("/webhooks")
+async def ml_webhook_handler(request: dict) -> dict:
+    """Handle MercadoLibre webhook notifications.
+    
+    Receives notifications for:
+    - New orders
+    - Payment updates  
+    - Shipping updates
+    - Order cancellations
+    """
+    
+    try:
+        # Log webhook data for debugging
+        print(f"ML Webhook received: {request}")
+        
+        # TODO: Process webhook based on topic
+        topic = request.get("topic")
+        resource = request.get("resource")
+        user_id = request.get("user_id")
+        
+        if topic == "orders":
+            # Handle order notifications
+            print(f"Order update for user {user_id}: {resource}")
+        elif topic == "payments":
+            # Handle payment notifications  
+            print(f"Payment update for user {user_id}: {resource}")
+        
+        # Always respond with 200 OK to acknowledge receipt
+        return {"status": "ok", "message": "Webhook processed"}
+        
+    except Exception as e:
+        print(f"Webhook error: {str(e)}")
+        # Still return 200 to avoid ML retries
+        return {"status": "error", "message": str(e)}
