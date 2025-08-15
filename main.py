@@ -13,15 +13,17 @@ from supabase import create_client, Client
 # Load environment variables
 load_dotenv()
 
-# ✅ Python 3.12 Type Aliases
-type UserRecord = dict[str, str | int | bool | None]
-type StoreRecord = dict[str, str | int | None] 
-type JWTPayload = dict[str, str | int | float]
-type SupabaseResponse[T] = dict[str, T | list[T] | None]
-type AuthData = dict[str, str | int]
+# Type hints compatible with Python 3.11
+from typing import Dict, Union, List, Any, Optional
+
+UserRecord = Dict[str, Union[str, int, bool, None]]
+StoreRecord = Dict[str, Union[str, int, None]] 
+JWTPayload = Dict[str, Union[str, int, float]]
+SupabaseResponse = Dict[str, Any]
+AuthData = Dict[str, Union[str, int]]
 
 # Initialize Supabase client
-supabase: Client | None = None
+supabase: Optional[Client] = None
 try:
     supabase_url = os.getenv("SUPABASE_URL")
     supabase_key = os.getenv("SUPABASE_KEY")
@@ -204,7 +206,7 @@ def read_root() -> APIInfo:
     )
 
 @app.get("/health")
-def health_check() -> dict[str, str]:
+def health_check() -> Dict[str, str]:
     """
     Health Check endpoint for monitoring.
     
