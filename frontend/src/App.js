@@ -76,7 +76,7 @@ const SalesDashboard = () => {
 
   // Delete ML store
   const deleteMLStore = async (storeId, storeName) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar la tienda "${storeName}"? Esta acción no se puede deshacer.`)) {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar la tienda "${storeName}"? Esta acción no se puede deshacer.`)) {
       return;
     }
 

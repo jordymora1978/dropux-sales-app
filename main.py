@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import os
 import jwt
 import hashlib
+import bcrypt
 from dotenv import load_dotenv
 from supabase import create_client, Client
 # ✅ Python 3.12 - Removed typing imports (using built-in generics and | operator)
@@ -63,6 +64,16 @@ except ImportError as e:
 except Exception as e:
     print(f"ERROR: Error loading ML endpoints: {e}")
 
+# Import and include ML Orders endpoints
+try:
+    from ml_orders_endpoint import router as ml_orders_router
+    app.include_router(ml_orders_router)
+    print("SUCCESS: MercadoLibre Orders endpoints loaded successfully")
+except ImportError as e:
+    print(f"WARNING: MercadoLibre Orders endpoints not available: {e}")
+except Exception as e:
+    print(f"ERROR: Error loading ML Orders endpoints: {e}")
+
 # CORS middleware - production ready
 app_env = os.getenv("APP_ENV", "development")
 
@@ -118,16 +129,20 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash.
+    """Verify password against bcrypt hash.
     
     Args:
         password: Plain text password
-        hashed: Stored hash to compare against
+        hashed: Stored bcrypt hash to compare against
         
     Returns:
         True if password matches hash
     """
-    return hash_password(password) == hashed
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except Exception:
+        # Fallback to SHA256 for compatibility
+        return hash_password(password) == hashed
 
 def create_jwt_token(user_data: UserRecord) -> str:
     """Create JWT token for authenticated user.
@@ -145,7 +160,7 @@ def create_jwt_token(user_data: UserRecord) -> str:
         "user_id": user_data["id"],
         "email": user_data["email"],
         "role": user_data["role"],
-        "company_id": user_data["company_id"],
+        "company_id": 1,  # Default company_id since users table doesn't have it
         "exp": datetime.utcnow().timestamp() + 86400  # 24 hours
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -261,7 +276,7 @@ def login(request: LoginRequest) -> LoginResponse:
     
     try:
         # Find user by email
-        response = supabase.table('users').select("*").eq('email', request.email).eq('active', True).execute()
+        response = supabase.table('users').select("*").eq('email', request.email).execute()
         
         if not response.data:
             raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -280,7 +295,7 @@ def login(request: LoginRequest) -> LoginResponse:
             "id": user["id"],
             "email": user["email"],
             "role": user["role"],
-            "company_id": user["company_id"],
+            "company_id": 1,  # Default company_id
             "created_at": user["created_at"]
         }
         

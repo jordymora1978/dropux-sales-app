@@ -134,7 +134,7 @@ class ApiService {
 
   // ML Stores
   async getMLStores() {
-    return await this.request('/api/ml/stores');
+    return await this.request('/api/ml/my-stores');
   }
 
   async setupMLStore(storeData) {
