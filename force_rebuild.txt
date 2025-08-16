@@ -1,4 +1,0 @@
-Force Railway rebuild: 2025-08-15 CORS Fix Deploy
-This file forces Railway to rebuild with CORS fixes.
-Frontend is deployed separately on Vercel.
-URGENT: Need CORS headers for Vercel domain.

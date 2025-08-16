@@ -56,7 +56,7 @@ app = FastAPI(
 
 # Import and include ML endpoints after app creation
 try:
-    from ml_endpoints import router as ml_router
+    from endpoints.ml_endpoints import router as ml_router
     app.include_router(ml_router)
     print("SUCCESS: MercadoLibre endpoints loaded successfully")
 except ImportError as e:
@@ -66,7 +66,7 @@ except Exception as e:
 
 # Import and include ML Orders endpoints
 try:
-    from ml_orders_endpoint import router as ml_orders_router
+    from endpoints.ml_orders_endpoint import router as ml_orders_router
     app.include_router(ml_orders_router)
     print("SUCCESS: MercadoLibre Orders endpoints loaded successfully")
 except ImportError as e:
