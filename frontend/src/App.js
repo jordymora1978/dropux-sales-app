@@ -3,6 +3,7 @@ import { User, Package, Truck, Eye, MessageSquare, ExternalLink, Sun, Moon, Shop
 import './App.css';
 import Login from './components/Login';
 import ConnectMLStore from './components/ConnectMLStore';
+import MLOrders from './components/MLOrders';
 import apiService from './services/api';
 
 const SalesDashboard = () => {
@@ -27,6 +28,8 @@ const SalesDashboard = () => {
   // ML Stores states
   const [showConnectML, setShowConnectML] = useState(false);
   const [mlStores, setMlStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [showMLOrders, setShowMLOrders] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -72,6 +75,20 @@ const SalesDashboard = () => {
   const handleMLConnectionSuccess = () => {
     setShowConnectML(false);
     loadMLStores(); // Reload stores
+  };
+
+  // View orders for a specific store
+  const viewStoreOrders = (store) => {
+    setSelectedStore(store);
+    setShowMLOrders(true);
+    setActiveTab('ml-orders'); // Switch to orders view
+  };
+
+  // Back to stores list
+  const backToStores = () => {
+    setShowMLOrders(false);
+    setSelectedStore(null);
+    setActiveTab('ml-stores');
   };
 
   // Delete ML store
@@ -495,6 +512,15 @@ const SalesDashboard = () => {
               <span className="nav-badge">{mlStores.length}</span>
             )}
           </button>
+          {showMLOrders && selectedStore && (
+            <button 
+              className={`nav-item ${activeTab === 'ml-orders' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ml-orders')}
+            >
+              <ShoppingCart size={18} />
+              Órdenes ML - {selectedStore.store_name}
+            </button>
+          )}
           <button 
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
@@ -710,8 +736,23 @@ const SalesDashboard = () => {
           </div>
           )}
 
+          {/* ML ORDERS TAB */}
+          {activeTab === 'ml-orders' && selectedStore && (
+            <div className="ml-orders-tab">
+              <div className="tab-header">
+                <button 
+                  className="back-button"
+                  onClick={backToStores}
+                >
+                  ← Volver a Tiendas ML
+                </button>
+              </div>
+              <MLOrders store={selectedStore} />
+            </div>
+          )}
+
           {/* ML STORES TAB */}
-          {activeTab === 'ml-stores' && (
+          {activeTab === 'ml-stores' && !showMLOrders && (
             <div className="ml-stores-container">
               <div className="ml-stores-header">
                 <div className="ml-stores-title">
@@ -781,7 +822,10 @@ const SalesDashboard = () => {
                       <div className="store-actions">
                         {store.is_connected ? (
                           <>
-                            <button className="store-action-btn primary">
+                            <button 
+                              className="store-action-btn primary"
+                              onClick={() => viewStoreOrders(store)}
+                            >
                               Ver Órdenes
                             </button>
                             <button className="store-action-btn secondary">
